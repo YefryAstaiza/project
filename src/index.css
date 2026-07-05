@@ -1,0 +1,551 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Corporate Colors */
+    --navy: #1E2245;
+    --navy2: #2D3163;
+    --orange: #E85A1A;
+    --orange2: #C03510;
+    --sand: #F8F5F0;
+    --white: #FFFFFF;
+    --muted-text: #9499BB;
+    --border-color: #E4E6F0;
+    --ink: #1E2245;
+
+    /* Glass effect variables */
+    --glass-bg: rgba(35, 32, 69, 0.65);
+    --glass-bg-light: rgba(255, 255, 255, 0.10);
+    --glass-border: rgba(255, 255, 255, 0.25);
+    --glass-blur: 18px;
+
+    /* HSL Conversions for shadcn/ui compatibility */
+    --background: 44 20% 97%;
+    --foreground: 232 52% 20%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 232 52% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 232 52% 20%;
+
+    --primary: 16 82% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 232 46% 27%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 44 20% 94%;
+    --muted-foreground: 240 30% 64%;
+
+    --accent: 16 82% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 18% 90%;
+    --input: 240 18% 90%;
+    --ring: 16 82% 50%;
+
+    --radius: 0.5rem;
+
+    /* Custom Corporate Colors */
+    --bg-sand: #F8F5F0;
+    --bg-white: #FFFFFF;
+    --text-navy: #1E2245;
+    --text-navy2: #2D3163;
+    --text-muted: #9499BB;
+    --accent-orange: #E85A1A;
+    --accent-orange-dark: #C03510;
+    --line-border: #E4E6F0;
+  }
+
+  .dark {
+    --glass-bg: rgba(35, 32, 69, 0.75);
+    --glass-bg-light: rgba(255, 255, 255, 0.08);
+    --background: 232 52% 12%;
+    --foreground: 44 20% 97%;
+
+    --card: 232 46% 17%;
+    --card-foreground: 44 20% 97%;
+
+    --popover: 232 46% 17%;
+    --popover-foreground: 44 20% 97%;
+
+    --primary: 16 82% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 232 46% 27%;
+    --secondary-foreground: 44 20% 97%;
+
+    --muted: 232 32% 25%;
+    --muted-foreground: 240 20% 70%;
+
+    --accent: 16 82% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 232 32% 25%;
+    --input: 232 32% 25%;
+    --ring: 16 82% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Glassmorphism Component Classes */
+@layer components {
+  /* Main glass card effect */
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+  }
+
+  .glass-card-light {
+    background: rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  /* Glass badge - for category badges */
+  .glass-badge {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 9999px;
+    color: #FFFFFF;
+  }
+
+  .glass-badge-cumpleanos {
+    background: rgba(236, 72, 153, 0.25);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #FDE7F3;
+  }
+
+  .glass-badge-logro {
+    background: rgba(232, 90, 26, 0.25);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #FDE7D9;
+  }
+
+  .glass-badge-noticia {
+    background: rgba(45, 49, 99, 0.25);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #E4E6F3;
+  }
+
+  .glass-badge-nacimiento {
+    background: rgba(59, 130, 246, 0.25);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #DBEAFE;
+  }
+
+  /* Glass icon button */
+  .glass-icon-btn {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.85);
+    transition: all 0.2s ease;
+  }
+
+  .glass-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #FFFFFF;
+  }
+
+  /* Text styles for glass cards */
+  .glass-text-primary {
+    color: #FFFFFF;
+  }
+
+  .glass-text-secondary {
+    color: rgba(228, 229, 242, 0.85);
+  }
+
+  .glass-text-muted {
+    color: rgba(148, 153, 187, 0.9);
+  }
+
+  /* Primary action button - SOLID, no glass */
+  .action-btn-solid {
+    background: var(--orange);
+    color: #FFFFFF;
+    border: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  .action-btn-solid:hover {
+    background: var(--orange2);
+  }
+
+  /* Background with decorative gradients for glass effect */
+  .bg-glass-scene {
+    position: relative;
+    background-color: #1E2245;
+  }
+
+  .bg-glass-scene::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 40%, rgba(232, 90, 26, 0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 20%, rgba(45, 49, 99, 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 30% at 60% 80%, rgba(232, 90, 26, 0.05) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+/* Custom utility classes for corporate colors */
+@layer utilities {
+  .bg-navy {
+    background-color: #1E2245;
+  }
+  .bg-navy2 {
+    background-color: #2D3163;
+  }
+  .bg-orange {
+    background-color: #E85A1A;
+  }
+  .bg-orange2 {
+    background-color: #C03510;
+  }
+  .bg-sand {
+    background-color: #F8F5F0;
+  }
+  .bg-white-corporate {
+    background-color: #FFFFFF;
+  }
+
+  .text-navy {
+    color: #1E2245;
+  }
+  .text-navy2 {
+    color: #2D3163;
+  }
+  .text-orange {
+    color: #E85A1A;
+  }
+  .text-orange2 {
+    color: #C03510;
+  }
+  .text-muted-corporate {
+    color: #9499BB;
+  }
+
+  .border-corporate {
+    border-color: #E4E6F0;
+  }
+
+  .ring-orange {
+    --tw-ring-color: #E85A1A;
+  }
+}
+
+/* Full-bleed image card styles */
+@layer components {
+  .card-full-bleed {
+    position: relative;
+    height: 320px;
+    border-radius: 16px;
+    overflow: hidden;
+    background-color: var(--navy);
+  }
+
+  @media (max-width: 640px) {
+    .card-full-bleed {
+      height: 280px;
+    }
+  }
+
+  .card-full-bleed-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .card-full-bleed:hover .card-full-bleed-image {
+    transform: scale(1.05);
+  }
+
+  .card-full-bleed-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(30, 34, 69, 0) 35%,
+      rgba(30, 34, 69, 0.55) 65%,
+      rgba(30, 34, 69, 0.92) 100%
+    );
+  }
+
+  .card-full-bleed-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Badge styles for full-bleed cards */
+  .card-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #FFFFFF;
+  }
+
+  .card-badge-orange {
+    background: rgba(232, 90, 26, 0.85);
+    border-color: rgba(232, 90, 26, 0.5);
+  }
+
+  .card-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #FFFFFF;
+    line-height: 1.2;
+  }
+
+  .card-description {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.4;
+  }
+
+  /* White action button for neutral actions */
+  .card-btn-white {
+    width: 100%;
+    padding: 10px 16px;
+    background: #FFFFFF;
+    color: var(--navy);
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .card-btn-white:hover {
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  /* Orange action button for conversion actions */
+  .card-btn-orange {
+    width: 100%;
+    padding: 10px 16px;
+    background: var(--orange);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .card-btn-orange:hover {
+    background: var(--orange2);
+  }
+
+  .card-btn-destructive {
+    width: 100%;
+    padding: 10px 16px;
+    background: var(--orange2);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .card-btn-destructive:hover {
+    background: #A02810;
+  }
+}
+
+/* New Employee Card styles */
+@layer components {
+  .card-new-employee {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 18px;
+    background: var(--navy);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+  }
+
+  .card-tag-neutral {
+    display: inline-flex;
+    padding: 3px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .card-tag-level {
+    display: inline-flex;
+    padding: 3px 8px;
+    background: rgba(232, 90, 26, 0.18);
+    border-radius: 6px;
+    font-size: 11px;
+    color: #FFB088;
+    font-weight: 500;
+  }
+
+  .card-message-box {
+    margin-top: auto;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 3px solid var(--orange);
+    border-radius: 0 8px 8px 0;
+  }
+
+  .card-message-text {
+    font-size: 13px;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.75);
+    line-height: 1.5;
+  }
+}
+
+/* Custom scrollbar */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-thumb-border {
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  .scrollbar-track-transparent {
+    scrollbar-track-color: transparent;
+  }
+}
+
+/* Animation classes */
+@layer components {
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.2s ease-out;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
