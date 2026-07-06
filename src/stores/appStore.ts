@@ -4,6 +4,19 @@ import { User, ProfileCard, Activity, News, NewEmployee, Reaction, Hobby } from 
 import { mockUsers, mockProfileCards, mockActivities, mockNews, mockNewEmployees, mockReactions, mockHobbies } from '@/services/mockData';
 import { subDays } from 'date-fns';
 
+// Tipos para las nuevas funcionalidades
+interface NewsReaction {
+  userId: string;
+  type: 'like' | 'felicidades' | 'fuego';
+}
+
+interface BirthdayMessage {
+  userId: string;
+  message: string;
+  date: string;
+  userName: string;
+}
+
 interface AppState {
   // Data
   users: User[];
@@ -14,6 +27,10 @@ interface AppState {
   reactions: Reaction[];
   hobbies: Hobby[];
 
+  // Nuevos estados para reacciones y mensajes en novedades
+  newsReactions: Record<string, NewsReaction[]>;
+  birthdayMessages: Record<string, BirthdayMessage[]>;
+
   // User actions
   updateUser: (userId: string, updates: Partial<User>) => void;
 
@@ -23,10 +40,18 @@ interface AppState {
   removeHobbyFromCard: (cardId: string, hobbyId: string) => void;
   updateProfilePhoto: (cardId: string, photoUrl: string) => void;
 
-  // Reaction actions
+  // Reaction actions (profile cards)
   addReaction: (profileCardId: string, userId: string, tipo: Reaction['tipo']) => void;
   removeReaction: (profileCardId: string, userId: string) => void;
   getUserReaction: (profileCardId: string, userId: string) => Reaction | undefined;
+
+  // Nuevas acciones para reacciones en novedades
+  updateNewsReactions: (newsId: string, reactions: NewsReaction[]) => void;
+  getNewsReactions: (newsId: string) => NewsReaction[];
+
+  // Nuevas acciones para mensajes de cumpleaños
+  updateBirthdayMessages: (newsId: string, messages: BirthdayMessage[]) => void;
+  getBirthdayMessages: (newsId: string) => BirthdayMessage[];
 
   // Activity actions
   addActivity: (activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt' | 'inscritos'>) => void;
@@ -68,6 +93,10 @@ export const useAppStore = create<AppState>()(
       newEmployees: mockNewEmployees,
       reactions: mockReactions,
       hobbies: mockHobbies,
+
+      // Inicializar nuevos estados vacíos
+      newsReactions: {},
+      birthdayMessages: {},
 
       // User actions
       updateUser: (userId, updates) => {
@@ -125,7 +154,7 @@ export const useAppStore = create<AppState>()(
         }));
       },
 
-      // Reaction actions
+      // Reaction actions (profile cards)
       addReaction: (profileCardId, userId, tipo) => {
         const state = get();
         const existingReaction = state.reactions.find(
@@ -171,6 +200,36 @@ export const useAppStore = create<AppState>()(
         return get().reactions.find(
           (r) => r.profileCardId === profileCardId && r.userId === userId
         );
+      },
+
+      // ===== NUEVAS ACCIONES PARA REACCIONES EN NOVEDADES =====
+
+      updateNewsReactions: (newsId, reactions) => {
+        set((state) => ({
+          newsReactions: {
+            ...state.newsReactions,
+            [newsId]: reactions,
+          },
+        }));
+      },
+
+      getNewsReactions: (newsId) => {
+        return get().newsReactions[newsId] || [];
+      },
+
+      // ===== NUEVAS ACCIONES PARA MENSAJES DE CUMPLEAÑOS =====
+
+      updateBirthdayMessages: (newsId, messages) => {
+        set((state) => ({
+          birthdayMessages: {
+            ...state.birthdayMessages,
+            [newsId]: messages,
+          },
+        }));
+      },
+
+      getBirthdayMessages: (newsId) => {
+        return get().birthdayMessages[newsId] || [];
       },
 
       // Activity actions
@@ -354,7 +413,6 @@ export const useAppStore = create<AppState>()(
 
       getActiveActivities: () => {
         const now = new Date();
-        // Set to start of today (00:00)
         const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
         return get().activities.filter(

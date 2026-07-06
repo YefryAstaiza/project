@@ -4,11 +4,11 @@ import { Navbar } from '@/components/shared/Navbar';
 
 export function MainLayout() {
   return (
-    <div className="flex h-screen overflow-hidden bg-glass-scene">
+    <div className="flex h-screen overflow-hidden bg-white">
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Navbar />
-        <main className="flex-1 overflow-auto bg-glass-scene">
+        <main className="flex-1 overflow-auto bg-white">
           <Outlet />
         </main>
       </div>

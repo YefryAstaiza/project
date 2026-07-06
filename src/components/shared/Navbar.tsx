@@ -21,14 +21,14 @@ export function Navbar() {
     : 'UN';
 
   return (
-    <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b border-white/10 bg-[#1E2245]/80 backdrop-blur-xl px-4 backdrop-saturate-150">
+    <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b border-gray-200 bg-white px-4">
       <div className="flex flex-1 items-center justify-end gap-4">
         {/* Theme Toggle */}
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="text-white/70 hover:text-white glass-icon-btn border-0"
+          className="text-gray-600 hover:text-gray-900 border-0"
         >
           <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
           <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -36,7 +36,7 @@ export function Navbar() {
         </Button>
 
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative text-white/70 hover:text-white glass-icon-btn border-0">
+        <Button variant="ghost" size="icon" className="relative text-gray-600 hover:text-gray-900 border-0">
           <Bell className="h-5 w-5" />
           <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange text-[10px] font-medium text-white border border-orange/30">
             3
@@ -47,36 +47,36 @@ export function Navbar() {
         {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-9 gap-2 px-2 text-white/70 hover:text-white hover:bg-white/10">
+            <Button variant="ghost" className="relative h-9 gap-2 px-2 text-gray-700 hover:text-black hover:bg-gray-100">
               <Avatar className="h-8 w-8 ring-2 ring-orange/30">
                 <AvatarImage src={user?.foto} alt={user?.nombre} />
-                <AvatarFallback className="bg-navy2 text-xs text-white">{initials}</AvatarFallback>
+                <AvatarFallback className="bg-orange text-xs text-white">{initials}</AvatarFallback>
               </Avatar>
               <div className="hidden flex-col items-start text-left md:flex">
-                <span className="text-sm font-medium text-white">
+                <span className="text-sm font-medium text-gray-900">
                   {user?.nombre} {user?.apellido}
                 </span>
-                <span className="text-xs text-white/60">{user?.cargo}</span>
+                <span className="text-xs text-gray-500">{user?.cargo}</span>
               </div>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56 bg-[#1E2245]/95 backdrop-blur-xl border-white/10" align="end" forceMount>
+          <DropdownMenuContent className="w-56 bg-white border-gray-200" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium text-white">
+                <p className="text-sm font-medium text-gray-900">
                   {user?.nombre} {user?.apellido}
                 </p>
-                <p className="text-xs leading-none text-white/60">
+                <p className="text-xs leading-none text-gray-500">
                   {user?.email}
                 </p>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-white/10" />
-            <DropdownMenuItem className="gap-2 text-white/80 hover:text-white hover:bg-white/10 focus:text-white focus:bg-white/10">
+            <DropdownMenuSeparator className="bg-gray-200" />
+            <DropdownMenuItem className="gap-2 text-gray-700 hover:text-black hover:bg-gray-100 focus:text-black focus:bg-gray-100">
               <User className="h-4 w-4" />
               Mi Perfil
             </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-white/10" />
+            <DropdownMenuSeparator className="bg-gray-200" />
             <DropdownMenuItem
               className="gap-2 text-destructive focus:text-destructive hover:bg-destructive/10"
               onClick={logout}

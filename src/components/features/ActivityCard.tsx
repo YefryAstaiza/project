@@ -101,7 +101,7 @@ export function ActivityCard({
           </div>
 
           {/* Location */}
-          <div className="flex items-center gap-1.5 text-xs text-white/70">
+          <div className="flex items-center gap-1.5 text-xs text-gray-700">
             <MapPin className="h-3 w-3 flex-shrink-0" />
             <span className="truncate">{activity.lugar}</span>
           </div>
@@ -186,8 +186,8 @@ export function AdminActivityCard({
                 {activity.categoria}
               </span>
             </div>
-            <h3 className="font-semibold truncate text-white">{activity.nombre}</h3>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/70 mt-1">
+            <h3 className="font-semibold truncate text-gray-900">{activity.nombre}</h3>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-700 mt-1">
               <span className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
                 {format(new Date(activity.fecha), "d MMM yyyy", { locale: es })}

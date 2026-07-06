@@ -85,9 +85,9 @@ export function ReactionBar({
                   <span className="text-xs font-medium text-white/90">{count}</span>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-64 glass-card bg-[#1E2245]/95 text-white" align="start">
+              <PopoverContent className="w-64 bg-white border border-gray-200 text-gray-900" align="start">
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-white">{label}</h4>
+                  <h4 className="text-sm font-medium text-gray-900">{label}</h4>
                   <div className="max-h-40 overflow-auto space-y-2">
                     {getUsersByReaction(tipo as ReactionType).map((user) => (
                       <div
@@ -96,7 +96,7 @@ export function ReactionBar({
                       >
                         <Avatar className="h-6 w-6">
                           <AvatarImage src={user.foto} />
-                          <AvatarFallback className="bg-navy2 text-white text-xs">
+                          <AvatarFallback className="bg-orange text-white text-xs">
                             {user.nombre[0]}
                             {user.apellido[0]}
                           </AvatarFallback>

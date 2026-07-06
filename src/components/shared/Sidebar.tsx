@@ -32,15 +32,15 @@ export function Sidebar() {
   const navItems = user?.rol === 'admin' ? adminNavItems : userNavItems;
 
   return (
-    <div className="flex h-full w-64 flex-col glass-card border-r border-white/10 bg-[#1E2245]/95">
-      <div className="flex h-16 items-center border-b border-white/10 px-6">
+    <div className="flex h-full w-64 flex-col border-r border-gray-200 bg-white">
+      <div className="flex h-16 items-center border-b border-gray-200 px-6">
         <Link to="/" className="flex items-center gap-2">
           <img
             src="https://katary360.katary.co:8088/assets/images/katary/logo-1.png"
             alt="Katary"
             className="h-10 w-10 object-contain"
           />
-          <span className="text-lg font-semibold text-white">Conecta360</span>
+          <span className="text-lg font-semibold text-gray-900">Conecta360</span>
         </Link>
       </div>
 
@@ -56,7 +56,7 @@ export function Sidebar() {
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
                   isActive
                     ? 'bg-orange text-white shadow-lg shadow-orange/20'
-                    : 'text-white/70 hover:bg-white/10 hover:text-white'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 )}
               >
                 <item.icon className="h-4 w-4" />
@@ -67,14 +67,14 @@ export function Sidebar() {
         </nav>
       </ScrollArea>
 
-      <div className="border-t border-white/10 p-4">
-        <div className="flex items-center gap-3 rounded-lg bg-white/5 border border-white/10 px-3 py-2">
+      <div className="border-t border-gray-200 p-4">
+        <div className="flex items-center gap-3 rounded-lg bg-gray-50 border border-gray-200 px-3 py-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange/20">
             <Users className="h-4 w-4 text-orange" />
           </div>
           <div className="flex-1 overflow-hidden">
-            <p className="text-xs text-white/60">Conecta con tu equipo</p>
-            <p className="text-sm font-medium text-white truncate">Conecta360</p>
+            <p className="text-xs text-gray-500">Conecta con tu equipo</p>
+            <p className="text-sm font-medium text-gray-900 truncate">Conecta360</p>
           </div>
         </div>
       </div>

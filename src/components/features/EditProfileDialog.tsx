@@ -117,7 +117,7 @@ export function EditProfileDialog({
                   src={selectedPhoto || profileCard.foto}
                   alt={`${profileCard.user.nombre} ${profileCard.user.apellido}`}
                 />
-                <AvatarFallback className="text-2xl bg-navy2 text-white">{initials}</AvatarFallback>
+                <AvatarFallback className="text-2xl bg-orange text-white">{initials}</AvatarFallback>
               </Avatar>
               <Button
                 size="icon"

@@ -15,8 +15,41 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Gift, Bell, Users, Calendar, Newspaper, UserPlus } from 'lucide-react';
+import { 
+  Search, 
+  Gift, 
+  Bell, 
+  Users, 
+  Calendar, 
+  Newspaper, 
+  UserPlus,
+  Play,
+  MessageCircle,
+  Heart,
+  ThumbsUp,
+  Sparkles,
+  X,
+  Smile
+} from 'lucide-react';
 import { ProfileCard as ProfileCardType } from '@/types';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Imágenes por defecto para novedades
+const defaultImages: Record<string, string> = {
+  cumpleanos: 'https://images.unsplash.com/photo-1558636508-e0db3814d1a8?w=600&h=400&fit=crop',
+  nacimiento: 'https://images.unsplash.com/photo-1515488042675-83e9c6bebbde?w=600&h=400&fit=crop',
+  logro: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=600&h=400&fit=crop',
+  noticia: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&h=400&fit=crop',
+};
+
+// Opciones de reacción (mismo que ProfileCard)
+const REACTION_OPTIONS = [
+  { tipo: 'like', emoji: '👍', label: 'Me gusta' },
+  { tipo: 'felicidades', emoji: '🎉', label: 'Felicidades' },
+  { tipo: 'fuego', emoji: '🔥', label: 'Fuego' },
+];
 
 export function Dashboard() {
   const { user } = useAuthStore();
@@ -25,6 +58,10 @@ export function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [editingCard, setEditingCard] = useState<ProfileCardType | null>(null);
+  
+  const [showMessageInput, setShowMessageInput] = useState<string | null>(null);
+  const [messageText, setMessageText] = useState('');
+  const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
 
   // Get data from store
   const news = appStore.getRecentNews();
@@ -33,11 +70,15 @@ export function Dashboard() {
   const activities = appStore.getActiveActivities();
   const reactions = appStore.reactions;
 
-  // Separate cumpleaños and other news - cumpleaños left, others right
+  // Nuevos métodos del store
+  const newsReactions = appStore.newsReactions || {};
+  const birthdayMessages = appStore.birthdayMessages || {};
+
+  // Separate cumpleaños and other news
   const cumpleanosNews = news.filter((n) => n.tipo === 'cumpleanos');
   const otherNews = news.filter((n) => n.tipo !== 'cumpleanos');
 
-  // Limit for display (4 of each)
+  // Limit for display
   const displayCumpleanos = cumpleanosNews.slice(0, 4);
   const displayOthers = otherNews.slice(0, 4);
 
@@ -51,14 +92,13 @@ export function Dashboard() {
     return matchesName || matchesCareer || matchesHobby;
   });
 
-  // Carousel state for Conecta360
+  // Carousel state
   const carouselRef = useRef<HTMLDivElement>(null);
   const [showRightFade, setShowRightFade] = useState(false);
   const isDragging = useRef(false);
   const startX = useRef(0);
   const scrollLeftPos = useRef(0);
 
-  // Check if carousel can scroll right
   const checkScroll = () => {
     if (carouselRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
@@ -72,7 +112,6 @@ export function Dashboard() {
     return () => window.removeEventListener('resize', checkScroll);
   }, [filteredProfileCards.length]);
 
-  // Drag-to-scroll handlers
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!carouselRef.current) return;
     e.preventDefault();
@@ -98,29 +137,23 @@ export function Dashboard() {
     carouselRef.current.style.userSelect = '';
   };
 
-  // Filter and sort activities - most recent first
+  // Filter and sort activities
   const filteredActivities = activities
     .filter((a) => selectedCategory === 'all' || a.categoria === selectedCategory)
     .sort((a, b) => {
       const now = new Date();
       const dateA = new Date(a.fecha);
       const dateB = new Date(b.fecha);
-
-      // Calculate days from today
       const daysA = Math.ceil((dateA.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
       const daysB = Math.ceil((dateB.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-
-      // Prioritize future dates, then recent, then past
-      if (daysA >= 0 && daysB >= 0) return daysA - daysB; // Both future: closer first
-      if (daysA >= 0) return -1; // A is future, B is past: A first
-      if (daysB >= 0) return 1; // B is future, A is past: B first
-      return Math.abs(daysB) - Math.abs(daysA); // Both past: more recent first
+      if (daysA >= 0 && daysB >= 0) return daysA - daysB;
+      if (daysA >= 0) return -1;
+      if (daysB >= 0) return 1;
+      return Math.abs(daysB) - Math.abs(daysA);
     });
 
-  // Get unique activity categories
   const categories = [...new Set(activities.map((a) => a.categoria))];
 
-  // Get current user's reactions on cards
   const getUserReaction = (profileCardId: string) => {
     const reaction = reactions.find(
       (r) => r.profileCardId === profileCardId && r.userId === user?.id
@@ -128,67 +161,324 @@ export function Dashboard() {
     return reaction;
   };
 
-  // Get all reactions for a card
   const getCardReactions = (profileCardId: string) => {
     return reactions.filter((r) => r.profileCardId === profileCardId);
   };
 
-  // Handle participation
   const isParticipating = (activityId: string) => {
     return activities
       .find((a) => a.id === activityId)
       ?.inscritos.some((i) => i.userId === user?.id) || false;
   };
 
+  // ===== FUNCIONES PARA REACCIONES Y MENSAJES EN NOVEDADES =====
+  
+  const handleNewsReaction = (newsId: string, tipo: string) => {
+    if (!user?.id) return;
+    
+    const currentReactions = newsReactions[newsId] || [];
+    const existingIndex = currentReactions.findIndex(r => r.userId === user.id);
+    
+    let newReactions = [...currentReactions];
+    
+    if (existingIndex !== -1) {
+      if (currentReactions[existingIndex].type === tipo) {
+        newReactions.splice(existingIndex, 1);
+      } else {
+        newReactions[existingIndex] = { userId: user.id, type: tipo };
+      }
+    } else {
+      newReactions.push({ userId: user.id, type: tipo });
+    }
+    
+    appStore.updateNewsReactions(newsId, newReactions);
+    setShowReactionPicker(null);
+  };
+
+  const handleBirthdayMessage = (newsId: string) => {
+    if (!user?.id || !messageText.trim()) return;
+    
+    const currentMessages = birthdayMessages[newsId] || [];
+    const newMessages = [
+      ...currentMessages,
+      { 
+        userId: user.id, 
+        message: messageText.trim(), 
+        date: new Date().toISOString(),
+        userName: user.nombre
+      }
+    ];
+    
+    appStore.updateBirthdayMessages(newsId, newMessages);
+    setMessageText('');
+    setShowMessageInput(null);
+  };
+
+  const getNewsReactions = (newsId: string) => {
+    return newsReactions[newsId] || [];
+  };
+
+  const getBirthdayMessages = (newsId: string) => {
+    return birthdayMessages[newsId] || [];
+  };
+
+  const getUserNewsReaction = (newsId: string) => {
+    const reactions = getNewsReactions(newsId);
+    const found = reactions.find(r => r.userId === user?.id);
+    return found?.type || null;
+  };
+
+  // Renderizar reacciones (mismo estilo que ProfileCard)
+  const renderReactions = (newsId: string) => {
+    const reactions = getNewsReactions(newsId);
+    const userReaction = getUserNewsReaction(newsId);
+    
+    // Agrupar por tipo
+    const counts = reactions.reduce((acc, r) => {
+      acc[r.type] = (acc[r.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return (
+      <div className="flex items-center gap-1 flex-wrap">
+        {REACTION_OPTIONS.map((option) => {
+          const count = counts[option.tipo] || 0;
+          if (count === 0) return null;
+          const isActive = userReaction === option.tipo;
+          return (
+            <span
+              key={option.tipo}
+              className={`flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full border ${
+                isActive 
+                  ? 'bg-[#FEF0EA] border-[#E85A1A]/30 text-[#C03510]' 
+                  : 'bg-[#F4F5FA] border-[#E4E6F0] text-[#5A5F80]'
+              }`}
+            >
+              <span>{option.emoji}</span>
+              <span className="font-bold">{count}</span>
+            </span>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // Renderizar picker de reacciones (mismo estilo que ProfileCard)
+  const renderReactionPicker = (newsId: string) => {
+    const userReaction = getUserNewsReaction(newsId);
+    
+    return (
+      <div className="absolute bottom-full left-0 mb-2 z-50 bg-white border border-[#E4E6F0] rounded-2xl shadow-xl p-1.5 flex gap-0.5">
+        {REACTION_OPTIONS.map((option) => {
+          const isActive = userReaction === option.tipo;
+          return (
+            <button
+              key={option.tipo}
+              onClick={() => handleNewsReaction(newsId, option.tipo)}
+              className={`flex flex-col items-center gap-0.5 px-1.5 py-1.5 rounded-xl transition-all hover:bg-[#F4F5FA] hover:scale-110 min-w-[44px] ${
+                isActive ? 'bg-[#FEF0EA]' : ''
+              }`}
+            >
+              <span className="text-xl">{option.emoji}</span>
+              <span className="text-[8px] font-bold text-[#B0B4CC] text-center leading-tight">
+                {option.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
-    <div className="min-h-screen relative z-10 overflow-x-hidden">
+    <div className="min-h-screen relative z-10 overflow-x-hidden bg-[#F8F5F0]">
       <div className="container max-w-7xl mx-auto py-6 space-y-8 px-4 md:px-6">
         {/* Header */}
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight text-white">
+          <h1 className="text-3xl font-bold tracking-tight text-[#1E2245]">
             Bienvenido, {user?.nombre}
           </h1>
-          <p className="text-white/70">
+          <p className="text-[#9499BB] font-semibold">
             Descubre novedades y conecta con tu equipo
           </p>
         </div>
 
-        {/* Section 1: Novedades del equipo */}
+        {/* ===== SECCIÓN 0: VIDEO DE BIENVENIDA ===== */}
         <section className="space-y-4">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg glass-icon-btn">
-              <Newspaper className="h-5 w-5 text-orange" />
+            <div className="h-[2px] w-7 bg-[#E85A1A] rounded-full" />
+            <span className="font-syne text-[10px] font-bold tracking-[2.5px] uppercase text-[#E85A1A]">
+              Video de Bienvenida
+            </span>
+          </div>
+          <div className="bg-white border border-[#E4E6F0] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all">
+            <div className="aspect-video bg-[#1E2245] rounded-xl m-2 flex items-center justify-center relative group cursor-pointer overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#E85A1A]/20 to-transparent" />
+              <div className="relative z-10 text-center">
+                <div className="w-20 h-20 rounded-full bg-[#E85A1A] flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                  <Play className="h-10 w-10 text-white fill-white ml-1" />
+                </div>
+                <p className="text-white font-semibold">Ver video de bienvenida</p>
+                <p className="text-[#9499BB] text-sm">Conoce las novedades de la plataforma</p>
+              </div>
             </div>
-            <h2 className="text-2xl font-semibold tracking-tight text-white">
+          </div>
+        </section>
+
+        {/* ===== SECCIÓN 1: NOVEDADES DEL EQUIPO ===== */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="h-[2px] w-7 bg-[#E85A1A] rounded-full" />
+            <span className="font-syne text-[10px] font-bold tracking-[2.5px] uppercase text-[#E85A1A]">
               Novedades del equipo
-            </h2>
+            </span>
           </div>
 
-          {/* Layout: Cumpleaños left, others right */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Cumpleaños - Left side */}
+          <div className="space-y-6">
+            {/* ===== CUMPLEAÑOS ===== */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg glass-icon-btn">
-                  <Gift className="h-4 w-4 text-orange" />
+                <div className="p-1.5 rounded-lg bg-[#FEF0EA]">
+                  <Gift className="h-4 w-4 text-[#E85A1A]" />
                 </div>
-                <h3 className="text-lg font-medium text-white">Cumpleaños</h3>
-                <Badge className="glass-badge-cumpleanos">
+                <h3 className="text-lg font-medium text-[#1E2245]">Cumpleaños</h3>
+                <Badge className="bg-[#E85A1A] text-white">
                   {displayCumpleanos.length}
                 </Badge>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
                 {displayCumpleanos.length > 0 ? (
-                  displayCumpleanos.map((newsItem) => (
-                    <NewsCard
-                      key={newsItem.id}
-                      news={newsItem}
-                    />
-                  ))
+                  displayCumpleanos.map((newsItem) => {
+                    const messages = getBirthdayMessages(newsItem.id);
+                    const imageUrl = newsItem.imagen || defaultImages.cumpleanos;
+                    
+                    return (
+                      <div key={newsItem.id} className="bg-white border border-[#E4E6F0] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all h-full flex flex-col">
+                        <div className="relative h-32 flex-shrink-0">
+                          <img
+                            src={imageUrl}
+                            alt={newsItem.titulo}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = defaultImages.cumpleanos;
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                          <div className="absolute bottom-2 left-3 right-3">
+                            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm text-white border border-white/10">
+                              🎂 Cumpleaños
+                            </span>
+                            <span className="float-right text-xs text-white/80">
+                              📅 {format(new Date(newsItem.fecha), 'd MMM', { locale: es })}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4 flex-1 flex flex-col">
+                          <h4 className="font-semibold text-[#1E2245] line-clamp-1">
+                            {newsItem.titulo}
+                          </h4>
+                          <p className="text-sm text-[#9499BB] line-clamp-2 flex-1">
+                            {newsItem.descripcion}
+                          </p>
+
+                          {/* Reacciones - mismo estilo que ProfileCard */}
+                          <div className="mt-2">
+                            {renderReactions(newsItem.id)}
+                          </div>
+
+                          {/* Mensajes de cumpleaños */}
+                          {messages.length > 0 && (
+                            <div className="mt-2 space-y-1 max-h-16 overflow-y-auto">
+                              {messages.slice(-2).map((msg, idx) => (
+                                <div key={idx} className="text-xs text-[#5A5F80] bg-[#F8F9FC] px-2 py-1 rounded-lg border border-[#E4E6F0]">
+                                  <span className="font-semibold text-[#1E2245]">💬 {msg.userName || 'Usuario'}:</span> {msg.message}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Botones de acción - mismo estilo que ProfileCard */}
+                          <div className="flex items-center gap-2 mt-3 relative">
+                            <button
+                              onClick={() => setShowReactionPicker(showReactionPicker === newsItem.id ? null : newsItem.id)}
+                              className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${
+                                getUserNewsReaction(newsItem.id)
+                                  ? 'bg-[#FEF0EA] border-[#E85A1A]/30 text-[#C03510]'
+                                  : 'bg-[#F4F5FA] text-[#5A5F80] hover:bg-[#FEF0EA]'
+                              }`}
+                            >
+                              <Smile className="h-3 w-3" />
+                              <span>Reaccionar</span>
+                            </button>
+                            
+                            <button
+                              onClick={() => setShowMessageInput(showMessageInput === newsItem.id ? null : newsItem.id)}
+                              className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[#F4F5FA] text-[#5A5F80] hover:bg-[#FEF0EA] transition-colors"
+                            >
+                              <MessageCircle className="h-3 w-3" />
+                              <span>Mensaje</span>
+                            </button>
+
+                            {/* Picker de reacciones */}
+                            <AnimatePresence>
+                              {showReactionPicker === newsItem.id && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                  className="absolute bottom-full left-0 mb-2"
+                                >
+                                  {renderReactionPicker(newsItem.id)}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+
+                          {/* Input de mensaje */}
+                          <AnimatePresence>
+                            {showMessageInput === newsItem.id && (
+                              <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 10 }}
+                                className="flex gap-2 mt-2"
+                              >
+                                <input
+                                  placeholder="Escribe un mensaje de cumpleaños..."
+                                  className="flex-1 px-3 py-1.5 text-sm bg-[#F8F5F0] text-[#1E2245] rounded-lg border border-[#E4E6F0] focus:border-[#E85A1A] focus:ring-2 focus:ring-[#E85A1A]/20 outline-none"
+                                  value={messageText}
+                                  onChange={(e) => setMessageText(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      handleBirthdayMessage(newsItem.id);
+                                    }
+                                  }}
+                                  autoFocus
+                                />
+                                <button
+                                  onClick={() => handleBirthdayMessage(newsItem.id)}
+                                  className="px-3 py-1.5 bg-[#E85A1A] text-white rounded-lg text-xs font-bold hover:bg-[#C03510] transition-colors"
+                                >
+                                  Enviar
+                                </button>
+                                <button
+                                  onClick={() => setShowMessageInput(null)}
+                                  className="px-2 py-1.5 bg-[#F4F5FA] text-[#9499BB] rounded-lg text-xs hover:bg-[#E4E6F0] transition-colors"
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      </div>
+                    );
+                  })
                 ) : (
-                  <div className="col-span-2 glass-card p-6 text-center">
-                    <Gift className="h-8 w-8 mx-auto mb-2 glass-text-muted" />
-                    <p className="text-sm glass-text-secondary">
+                  <div className="col-span-full bg-white border border-[#E4E6F0] rounded-2xl p-6 text-center">
+                    <Gift className="h-8 w-8 mx-auto mb-2 text-[#C8CADB]" />
+                    <p className="text-sm text-[#9499BB] font-semibold">
                       No hay cumpleaños próximos
                     </p>
                   </div>
@@ -196,29 +486,109 @@ export function Dashboard() {
               </div>
             </div>
 
-            {/* Other news - Right side */}
+            {/* ===== OTRAS NOVEDADES ===== */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg glass-icon-btn">
-                  <Bell className="h-4 w-4 text-orange" />
+                <div className="p-1.5 rounded-lg bg-[#FEF0EA]">
+                  <Bell className="h-4 w-4 text-[#E85A1A]" />
                 </div>
-                <h3 className="text-lg font-medium text-white">Otras Novedades</h3>
-                <Badge className="glass-badge-noticia">
+                <h3 className="text-lg font-medium text-[#1E2245]">Otras Novedades</h3>
+                <Badge className="bg-[#1E2245] text-white">
                   {displayOthers.length}
                 </Badge>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
                 {displayOthers.length > 0 ? (
-                  displayOthers.map((newsItem) => (
-                    <NewsCard
-                      key={newsItem.id}
-                      news={newsItem}
-                    />
-                  ))
+                  displayOthers.map((newsItem) => {
+                    const iconMap: Record<string, string> = {
+                      nacimiento: '👶',
+                      logro: '🏆',
+                      noticia: '📢',
+                    };
+                    const labelMap: Record<string, string> = {
+                      nacimiento: 'Nacimiento',
+                      logro: 'Logro',
+                      noticia: 'Noticia',
+                    };
+                    
+                    const imageMap: Record<string, string> = {
+                      nacimiento: defaultImages.nacimiento,
+                      logro: defaultImages.logro,
+                      noticia: defaultImages.noticia,
+                    };
+                    const imageUrl = newsItem.imagen || imageMap[newsItem.tipo] || defaultImages.noticia;
+                    
+                    return (
+                      <div key={newsItem.id} className="bg-white border border-[#E4E6F0] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all h-full flex flex-col">
+                        <div className="relative h-32 flex-shrink-0">
+                          <img
+                            src={imageUrl}
+                            alt={newsItem.titulo}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = defaultImages.noticia;
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                          <div className="absolute bottom-2 left-3 right-3">
+                            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm text-white border border-white/10">
+                              {iconMap[newsItem.tipo] || '📢'} {labelMap[newsItem.tipo] || 'Noticia'}
+                            </span>
+                            <span className="float-right text-xs text-white/80">
+                              📅 {format(new Date(newsItem.fecha), 'd MMM', { locale: es })}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4 flex-1 flex flex-col">
+                          <h4 className="font-semibold text-[#1E2245] line-clamp-1">
+                            {newsItem.titulo}
+                          </h4>
+                          <p className="text-sm text-[#9499BB] line-clamp-2 flex-1">
+                            {newsItem.descripcion}
+                          </p>
+
+                          {/* Reacciones - mismo estilo que ProfileCard */}
+                          <div className="mt-2">
+                            {renderReactions(newsItem.id)}
+                          </div>
+
+                          {/* Botones de acción - mismo estilo que ProfileCard */}
+                          <div className="flex items-center gap-2 mt-3 relative">
+                            <button
+                              onClick={() => setShowReactionPicker(showReactionPicker === newsItem.id ? null : newsItem.id)}
+                              className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${
+                                getUserNewsReaction(newsItem.id)
+                                  ? 'bg-[#FEF0EA] border-[#E85A1A]/30 text-[#C03510]'
+                                  : 'bg-[#F4F5FA] text-[#5A5F80] hover:bg-[#FEF0EA]'
+                              }`}
+                            >
+                              <Smile className="h-3 w-3" />
+                              <span>Reaccionar</span>
+                            </button>
+
+                            {/* Picker de reacciones */}
+                            <AnimatePresence>
+                              {showReactionPicker === newsItem.id && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                  className="absolute bottom-full left-0 mb-2"
+                                >
+                                  {renderReactionPicker(newsItem.id)}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
                 ) : (
-                  <div className="col-span-2 glass-card p-6 text-center">
-                    <Bell className="h-8 w-8 mx-auto mb-2 glass-text-muted" />
-                    <p className="text-sm glass-text-secondary">
+                  <div className="col-span-full bg-white border border-[#E4E6F0] rounded-2xl p-6 text-center">
+                    <Bell className="h-8 w-8 mx-auto mb-2 text-[#C8CADB]" />
+                    <p className="text-sm text-[#9499BB] font-semibold">
                       No hay otras novedades
                     </p>
                   </div>
@@ -228,24 +598,22 @@ export function Dashboard() {
           </div>
         </section>
 
-        {/* Section 2: Nuevos en el equipo */}
+        {/* ===== SECCIÓN 2: NUEVOS EN EL EQUIPO ===== */}
         <section className="space-y-4">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg glass-icon-btn">
-              <UserPlus className="h-5 w-5 text-orange" />
-            </div>
-            <h2 className="text-2xl font-semibold tracking-tight text-white">
-              Nuevos en el Equipo
-            </h2>
-            <Badge className="glass-badge text-white/90 ml-2">
+            <div className="h-[2px] w-7 bg-[#E85A1A] rounded-full" />
+            <span className="font-syne text-[10px] font-bold tracking-[2.5px] uppercase text-[#E85A1A]">
+              Nuevos en el equipo
+            </span>
+            <Badge className="bg-[#E85A1A] text-white ml-2">
               {newEmployees.length}
             </Badge>
           </div>
 
           {newEmployees.length === 0 ? (
-            <div className="glass-card p-12 text-center">
-              <Users className="h-12 w-12 mx-auto glass-text-muted" />
-              <p className="mt-4 text-sm glass-text-secondary">
+            <div className="bg-white border border-[#E4E6F0] rounded-2xl p-12 text-center">
+              <Users className="h-12 w-12 mx-auto text-[#C8CADB]" />
+              <p className="mt-4 text-sm text-[#9499BB] font-semibold">
                 No hay nuevos integrantes esta semana
               </p>
             </div>
@@ -258,24 +626,24 @@ export function Dashboard() {
           )}
         </section>
 
-        {/* Section 3: Conecta360 */}
+        {/* ===== SECCIÓN 3: COMUNIDAD DE HOBBIES ===== */}
         <section className="space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg glass-icon-btn">
-                <Users className="h-5 w-5 text-orange" />
-              </div>
-              <h2 className="text-2xl font-semibold tracking-tight text-white">Conecta360</h2>
-              <Badge className="glass-badge text-white/90 ml-2">
+              <div className="h-[2px] w-7 bg-[#E85A1A] rounded-full" />
+              <span className="font-syne text-[10px] font-bold tracking-[2.5px] uppercase text-[#E85A1A]">
+                Comunidad de hobbies
+              </span>
+              <span className="text-[11px] font-bold text-[#9499BB] ml-2">
                 {filteredProfileCards.length} colaboradores
-              </Badge>
+              </span>
             </div>
 
             <div className="relative flex-1 min-w-0 max-w-xs">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 glass-text-muted" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C0C3D8]" />
               <Input
                 placeholder="Buscar por nombre, carrera, hobby..."
-                className="w-full pl-9 border-white/20 bg-white/10 text-white placeholder:text-white/50 focus:border-orange focus:ring-orange"
+                className="w-full pl-9 border-[#E4E6F0] bg-white text-[#1E2245] placeholder:text-[#C0C3D8] focus:border-[#E85A1A] focus:ring-[#E85A1A] rounded-xl"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -283,15 +651,14 @@ export function Dashboard() {
           </div>
 
           {filteredProfileCards.length === 0 ? (
-            <div className="glass-card p-12 text-center">
-              <Users className="h-12 w-12 mx-auto glass-text-muted" />
-              <p className="mt-4 text-sm glass-text-secondary">
+            <div className="bg-white border border-[#E4E6F0] rounded-2xl p-12 text-center">
+              <Users className="h-12 w-12 mx-auto text-[#C8CADB]" />
+              <p className="mt-4 text-sm text-[#9499BB] font-semibold">
                 No se encontraron colaboradores
               </p>
             </div>
           ) : (
             <div className="relative">
-              {/* Carousel container */}
               <div
                 ref={carouselRef}
                 className="flex gap-4 overflow-x-auto overflow-y-hidden pb-2 pr-8 cursor-grab
@@ -321,26 +688,23 @@ export function Dashboard() {
                 ))}
               </div>
 
-              {/* Fade indicator on the right */}
               {showRightFade && (
                 <div className="absolute right-0 top-0 bottom-2 w-12 pointer-events-none
-                  bg-gradient-to-l from-[#1E2245] to-transparent" />
+                  bg-gradient-to-l from-[#F8F5F0] to-transparent" />
               )}
             </div>
           )}
         </section>
 
-        {/* Section 4: Actividades y Eventos */}
+        {/* ===== SECCIÓN 4: ACTIVIDADES Y EVENTOS ===== */}
         <section className="space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg glass-icon-btn">
-                <Calendar className="h-5 w-5 text-orange" />
-              </div>
-              <h2 className="text-2xl font-semibold tracking-tight text-white">
-                Actividades y Eventos
-              </h2>
-              <Badge className="glass-badge text-white/90 ml-2">
+              <div className="h-[2px] w-7 bg-[#E85A1A] rounded-full" />
+              <span className="font-syne text-[10px] font-bold tracking-[2.5px] uppercase text-[#E85A1A]">
+                Actividades y eventos
+              </span>
+              <Badge className="bg-[#E85A1A] text-white ml-2">
                 {filteredActivities.length}
               </Badge>
             </div>
@@ -349,7 +713,7 @@ export function Dashboard() {
               value={selectedCategory}
               onValueChange={setSelectedCategory}
             >
-              <SelectTrigger className="w-40 border-white/20 bg-white/10 text-white">
+              <SelectTrigger className="w-40 border-[#E4E6F0] bg-white text-[#1E2245] rounded-xl">
                 <SelectValue placeholder="Categoría" />
               </SelectTrigger>
               <SelectContent>
@@ -364,9 +728,9 @@ export function Dashboard() {
           </div>
 
           {filteredActivities.length === 0 ? (
-            <div className="glass-card p-12 text-center">
-              <Calendar className="h-12 w-12 mx-auto glass-text-muted" />
-              <p className="mt-4 text-sm glass-text-secondary">
+            <div className="bg-white border border-[#E4E6F0] rounded-2xl p-12 text-center">
+              <Calendar className="h-12 w-12 mx-auto text-[#C8CADB]" />
+              <p className="mt-4 text-sm text-[#9499BB] font-semibold">
                 No hay actividades programadas
               </p>
             </div>
@@ -388,6 +752,28 @@ export function Dashboard() {
               ))}
             </div>
           )}
+        </section>
+
+        {/* ===== SECCIÓN 5: ASISTENTE INTELIGENTE (FUTURO) ===== */}
+        <section className="space-y-4 opacity-50 pointer-events-none">
+          <div className="flex items-center gap-2">
+            <div className="h-[2px] w-7 bg-[#E85A1A] rounded-full" />
+            <span className="font-syne text-[10px] font-bold tracking-[2.5px] uppercase text-[#E85A1A]">
+              Asistente Inteligente
+            </span>
+            <Badge className="bg-[#9499BB] text-white text-[10px]">
+              Próximamente
+            </Badge>
+          </div>
+          <div className="bg-[#F4F5FA] border border-[#E4E6F0] rounded-2xl p-6 text-center">
+            <Sparkles className="h-8 w-8 mx-auto mb-2 text-[#9499BB]" />
+            <p className="text-sm text-[#9499BB] font-semibold">
+              Pregunta lo que necesites y la IA te ayudará
+            </p>
+            <p className="text-xs text-[#C0C3D8] mt-1">
+              Ej: "¿Dónde puedo ver mi asignación?", "¿Cómo me inscribo a una actividad?"
+            </p>
+          </div>
         </section>
       </div>
 

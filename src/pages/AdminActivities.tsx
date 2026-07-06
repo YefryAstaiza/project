@@ -255,10 +255,10 @@ export function AdminActivities() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
               Gestión de actividades Conecta360
             </h1>
-            <p className="text-white/70 mt-1">
+            <p className="text-gray-600 mt-1">
               Administra actividades, novedades y nuevos integrantes
             </p>
           </div>
@@ -269,8 +269,8 @@ export function AdminActivities() {
           <div className="glass-card p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-white/60">Total</p>
-                <p className="text-2xl font-bold text-white">
+                <p className="text-sm text-gray-600">Total</p>
+                <p className="text-2xl font-bold text-gray-900">
                   {activities.filter((a) => !a.deletedAt).length}
                 </p>
               </div>

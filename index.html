@@ -12,6 +12,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   </head>
   <body>
+    <script>
+      // Limpiar tema oscuro guardado y forzar tema claro
+      localStorage.removeItem('theme');
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
