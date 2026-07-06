@@ -35,9 +35,11 @@ export function Sidebar() {
     <div className="flex h-full w-64 flex-col glass-card border-r border-white/10 bg-[#1E2245]/95">
       <div className="flex h-16 items-center border-b border-white/10 px-6">
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange text-white shadow-lg shadow-orange/20">
-            <Users className="h-5 w-5" />
-          </div>
+          <img
+            src="https://katary360.katary.co:8088/assets/images/katary/logo-1.png"
+            alt="Katary"
+            className="h-10 w-10 object-contain"
+          />
           <span className="text-lg font-semibold text-white">Conecta360</span>
         </Link>
       </div>

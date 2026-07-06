@@ -364,8 +364,8 @@ export function AdminActivities() {
                           <Calendar className="h-5 w-5 text-orange" />
                         </div>
                         <div className="text-left">
-                          <p className="font-medium text-white">+ Novedad</p>
-                          <p className="text-sm text-white/60">
+                          <p className="font-medium text-black">+ Novedad</p>
+                          <p className="text-sm text-black/60">
                             Crea una nueva actividad o evento
                           </p>
                         </div>
@@ -379,8 +379,8 @@ export function AdminActivities() {
                           <FileText className="h-5 w-5 text-orange" />
                         </div>
                         <div className="text-left">
-                          <p className="font-medium text-white">+ Nuevos en el equipo</p>
-                          <p className="text-sm text-white/60">
+                          <p className="font-medium text-black">+ Nuevos en el equipo</p>
+                          <p className="text-sm text-black/60">
                             Publica noticias, logros o cumpleaños
                           </p>
                         </div>
@@ -394,8 +394,8 @@ export function AdminActivities() {
                           <UserPlus className="h-5 w-5 text-orange" />
                         </div>
                         <div className="text-left">
-                          <p className="font-medium text-white">+ Actividad</p>
-                          <p className="text-sm text-white/60">
+                          <p className="font-medium text-black">+ Actividad</p>
+                          <p className="text-sm text-black/60">
                             Presenta a un nuevo colaborador
                           </p>
                         </div>

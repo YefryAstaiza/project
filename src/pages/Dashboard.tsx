@@ -170,7 +170,7 @@ export function Dashboard() {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg glass-icon-btn">
-                  <Gift className="h-4 w-4 text-pink-400" />
+                  <Gift className="h-4 w-4 text-orange" />
                 </div>
                 <h3 className="text-lg font-medium text-white">Cumpleaños</h3>
                 <Badge className="glass-badge-cumpleanos">
@@ -200,7 +200,7 @@ export function Dashboard() {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg glass-icon-btn">
-                  <Bell className="h-4 w-4 text-navy2" />
+                  <Bell className="h-4 w-4 text-orange" />
                 </div>
                 <h3 className="text-lg font-medium text-white">Otras Novedades</h3>
                 <Badge className="glass-badge-noticia">
@@ -237,7 +237,7 @@ export function Dashboard() {
             <h2 className="text-2xl font-semibold tracking-tight text-white">
               Nuevos en el Equipo
             </h2>
-            <Badge className="bg-orange text-white ml-2">
+            <Badge className="glass-badge text-white/90 ml-2">
               {newEmployees.length}
             </Badge>
           </div>
