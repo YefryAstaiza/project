@@ -99,6 +99,11 @@ export function Dashboard() {
   const startX = useRef(0);
   const scrollLeftPos = useRef(0);
 
+  // Carrusel de novedades
+  const newsCarouselRef = useRef<HTMLDivElement>(null);
+  const [showNewsRightFade, setShowNewsRightFade] = useState(false);
+  const [isAutoScrolling, setIsAutoScrolling] = useState(true);
+
   const checkScroll = () => {
     if (carouselRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
@@ -106,11 +111,76 @@ export function Dashboard() {
     }
   };
 
+  const checkNewsScroll = () => {
+    if (newsCarouselRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = newsCarouselRef.current;
+      setShowNewsRightFade(scrollLeft + clientWidth < scrollWidth - 10);
+    }
+  };
+
   useEffect(() => {
     checkScroll();
-    window.addEventListener('resize', checkScroll);
-    return () => window.removeEventListener('resize', checkScroll);
-  }, [filteredProfileCards.length]);
+    checkNewsScroll();
+    window.addEventListener('resize', () => {
+      checkScroll();
+      checkNewsScroll();
+    });
+    return () => window.removeEventListener('resize', () => {
+      checkScroll();
+      checkNewsScroll();
+    });
+  }, [filteredProfileCards.length, news.length]);
+
+  // Auto-scroll del carrusel de novedades
+  useEffect(() => {
+    if (!newsCarouselRef.current || news.length === 0 || !isAutoScrolling) return;
+
+    const container = newsCarouselRef.current;
+    let animationId: number;
+    let startTime: number;
+    const duration = 3000; // 3 segundos entre cada movimiento
+    const step = 1; // píxeles por frame
+
+    const scroll = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = (timestamp - startTime) / duration;
+
+      if (progress < 1) {
+        // Mover gradualmente
+        const maxScroll = container.scrollWidth - container.clientWidth;
+        if (container.scrollLeft >= maxScroll - 10) {
+          container.scrollLeft = 0;
+          startTime = timestamp;
+        } else {
+          container.scrollLeft += step;
+        }
+        animationId = requestAnimationFrame(scroll);
+      } else {
+        // Reiniciar el ciclo
+        startTime = timestamp;
+        const maxScroll = container.scrollWidth - container.clientWidth;
+        if (container.scrollLeft >= maxScroll - 10) {
+          container.scrollLeft = 0;
+        }
+        animationId = requestAnimationFrame(scroll);
+      }
+    };
+
+    // Pausar auto-scroll al hacer hover
+    const pauseAutoScroll = () => setIsAutoScrolling(false);
+    const resumeAutoScroll = () => setIsAutoScrolling(true);
+
+    container.addEventListener('mouseenter', pauseAutoScroll);
+    container.addEventListener('mouseleave', resumeAutoScroll);
+
+    animationId = requestAnimationFrame(scroll);
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      container.removeEventListener('mouseenter', pauseAutoScroll);
+      container.removeEventListener('mouseleave', resumeAutoScroll);
+    };
+  }, [news.length, isAutoScrolling]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!carouselRef.current) return;
@@ -290,6 +360,20 @@ export function Dashboard() {
     );
   };
 
+  // Mapeo de iconos y etiquetas para novedades del carrusel
+  const iconMap: Record<string, string> = {
+    cumpleanos: '🎂',
+    nacimiento: '👶',
+    logro: '🏆',
+    noticia: '📢',
+  };
+  const labelMap: Record<string, string> = {
+    cumpleanos: 'Cumpleaños',
+    nacimiento: 'Nacimiento',
+    logro: 'Logro',
+    noticia: 'Noticia',
+  };
+
   return (
     <div className="min-h-screen relative z-10 overflow-x-hidden bg-[#F8F5F0]">
       <div className="container max-w-7xl mx-auto py-6 space-y-8 px-4 md:px-6">
@@ -303,7 +387,57 @@ export function Dashboard() {
           </p>
         </div>
 
-        {/* ===== SECCIÓN 0: VIDEO DE BIENVENIDA ===== */}
+        {/* ===== SECCIÓN 0: CARRUSEL DE NOVEDADES ===== */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="h-[2px] w-7 bg-[#E85A1A] rounded-full" />
+            <span className="font-syne text-[10px] font-bold tracking-[2.5px] uppercase text-[#E85A1A]">
+              Novedades del equipo
+            </span>
+          </div>
+
+          <div className="relative">
+            <div
+              ref={newsCarouselRef}
+              className="flex gap-4 overflow-x-auto overflow-y-hidden pb-2 pr-8 cursor-grab
+                [&::-webkit-scrollbar]:hidden [-webkit-overflow-scrolling]:touch"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              onScroll={checkNewsScroll}
+            >
+              {news.map((item) => (
+                <div 
+                  key={item.id} 
+                  className="flex-shrink-0 flex items-center gap-3 bg-[#2D3163] rounded-xl px-4 py-3 border border-[#3D4170] min-w-[280px] max-w-[320px] shadow-lg hover:shadow-xl transition-all"
+                >
+                  <span className="text-3xl">{iconMap[item.tipo] || '📢'}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-[#E85A1A] uppercase tracking-wider">
+                        {labelMap[item.tipo] || 'Noticia'}
+                      </span>
+                      <span className="text-[10px] text-[#9499BB]">
+                        {format(new Date(item.fecha), 'd MMM', { locale: es })}
+                      </span>
+                    </div>
+                    <p className="text-sm text-white font-medium line-clamp-1">
+                      {item.titulo}
+                    </p>
+                    <p className="text-xs text-[#9499BB] line-clamp-1">
+                      {item.descripcion}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {showNewsRightFade && (
+              <div className="absolute right-0 top-0 bottom-2 w-12 pointer-events-none
+                bg-gradient-to-l from-[#F8F5F0] to-transparent" />
+            )}
+          </div>
+        </section>
+
+        {/* ===== SECCIÓN 1: VIDEO DE BIENVENIDA ===== */}
         <section className="space-y-4">
           <div className="flex items-center gap-2">
             <div className="h-[2px] w-7 bg-[#E85A1A] rounded-full" />
@@ -325,7 +459,7 @@ export function Dashboard() {
           </div>
         </section>
 
-        {/* ===== SECCIÓN 1: NOVEDADES DEL EQUIPO ===== */}
+        {/* ===== SECCIÓN 2: NOVEDADES DEL EQUIPO (DETALLADAS) ===== */}
         <section className="space-y-4">
           <div className="flex items-center gap-2">
             <div className="h-[2px] w-7 bg-[#E85A1A] rounded-full" />
@@ -500,12 +634,12 @@ export function Dashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
                 {displayOthers.length > 0 ? (
                   displayOthers.map((newsItem) => {
-                    const iconMap: Record<string, string> = {
+                    const iconMap2: Record<string, string> = {
                       nacimiento: '👶',
                       logro: '🏆',
                       noticia: '📢',
                     };
-                    const labelMap: Record<string, string> = {
+                    const labelMap2: Record<string, string> = {
                       nacimiento: 'Nacimiento',
                       logro: 'Logro',
                       noticia: 'Noticia',
@@ -532,7 +666,7 @@ export function Dashboard() {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                           <div className="absolute bottom-2 left-3 right-3">
                             <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm text-white border border-white/10">
-                              {iconMap[newsItem.tipo] || '📢'} {labelMap[newsItem.tipo] || 'Noticia'}
+                              {iconMap2[newsItem.tipo] || '📢'} {labelMap2[newsItem.tipo] || 'Noticia'}
                             </span>
                             <span className="float-right text-xs text-white/80">
                               📅 {format(new Date(newsItem.fecha), 'd MMM', { locale: es })}
@@ -598,7 +732,7 @@ export function Dashboard() {
           </div>
         </section>
 
-        {/* ===== SECCIÓN 2: NUEVOS EN EL EQUIPO ===== */}
+        {/* ===== SECCIÓN 3: NUEVOS EN EL EQUIPO ===== */}
         <section className="space-y-4">
           <div className="flex items-center gap-2">
             <div className="h-[2px] w-7 bg-[#E85A1A] rounded-full" />
@@ -626,7 +760,7 @@ export function Dashboard() {
           )}
         </section>
 
-        {/* ===== SECCIÓN 3: COMUNIDAD DE HOBBIES ===== */}
+        {/* ===== SECCIÓN 4: COMUNIDAD DE HOBBIES ===== */}
         <section className="space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-2">
@@ -696,7 +830,7 @@ export function Dashboard() {
           )}
         </section>
 
-        {/* ===== SECCIÓN 4: ACTIVIDADES Y EVENTOS ===== */}
+        {/* ===== SECCIÓN 5: ACTIVIDADES Y EVENTOS ===== */}
         <section className="space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-2">
@@ -754,7 +888,7 @@ export function Dashboard() {
           )}
         </section>
 
-        {/* ===== SECCIÓN 5: ASISTENTE INTELIGENTE (FUTURO) ===== */}
+        {/* ===== SECCIÓN 6: ASISTENTE INTELIGENTE (FUTURO) ===== */}
         <section className="space-y-4 opacity-50 pointer-events-none">
           <div className="flex items-center gap-2">
             <div className="h-[2px] w-7 bg-[#E85A1A] rounded-full" />
