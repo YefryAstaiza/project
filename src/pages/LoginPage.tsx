@@ -128,18 +128,18 @@ export function LoginPage() {
               >
                 <Users className="h-8 w-8 text-white" />
               </motion.div>
-              <h1 className="text-3xl font-bold tracking-tight text-white">Conecta360</h1>
-              <p className="text-white/70 mt-2">Conecta con tu equipo de trabajo</p>
+              <h1 className="text-3xl font-bold tracking-tight text-black">Conecta360</h1>
+              <p className="text-black/70 mt-2">Conecta con tu equipo de trabajo</p>
             </div>
 
             <div className="glass-card p-6 space-y-6">
               <div className="space-y-1 pb-2 border-b border-white/10">
-                <h2 className="text-2xl font-semibold text-white">Iniciar sesión</h2>
-                <p className="text-white/60">Ingresa tu correo electrónico para continuar</p>
+                <h2 className="text-2xl font-semibold text-black">Iniciar sesión</h2>
+                <p className="text-black/60">Ingresa tu correo electrónico para continuar</p>
               </div>
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-white/80">Correo electrónico</Label>
+                  <Label htmlFor="email" className="text-black/80">Correo electrónico</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
                     <Input

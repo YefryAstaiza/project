@@ -83,8 +83,19 @@ export interface NewEmployee {
   comentario?: string;
   fechaPublicacion: string;
   estado: ActivityStatus;
+  hobbies?: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+// Reacción para nuevos empleados
+export interface NewEmployeeReaction {
+  id: string;
+  newEmployeeId: string;
+  userId: string;
+  user: User;
+  tipo: '👋' | '🎉' | '🔥' | '🤝';
+  createdAt: string;
 }
 
 // Activity model

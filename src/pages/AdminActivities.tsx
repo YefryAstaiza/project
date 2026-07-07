@@ -282,8 +282,8 @@ export function AdminActivities() {
           <div className="glass-card p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-white/60">Publicadas</p>
-                <p className="text-2xl font-bold text-orange">
+                <p className="text-sm text-black/60">Publicadas</p>
+                <p className="text-2xl font-bold text-black">
                   {activities.filter((a) => a.estado === 'publicada' && !a.deletedAt).length}
                 </p>
               </div>
@@ -295,21 +295,21 @@ export function AdminActivities() {
           <div className="glass-card p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-white/60">Borradores</p>
-                <p className="text-2xl font-bold text-white/90">
+                <p className="text-sm text-black/60">Borradores</p>
+                <p className="text-2xl font-bold text-black/90">
                   {activities.filter((a) => a.estado === 'borrador' && !a.deletedAt).length}
                 </p>
               </div>
               <div className="p-2 rounded-lg glass-icon-btn">
-                <FileText className="h-6 w-6 text-white/70" />
+                <FileText className="h-6 w-6 text-orange/70" />
               </div>
             </div>
           </div>
           <div className="glass-card p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-white/60">Papelera</p>
-                <p className="text-2xl font-bold text-destructive">
+                <p className="text-sm text-black/60">Papelera</p>
+                <p className="text-2xl font-bold text-black/90">
                   {deletedActivities.length}
                 </p>
               </div>
@@ -327,10 +327,10 @@ export function AdminActivities() {
         >
           <div className="flex items-center justify-between flex-wrap gap-4">
             <TabsList className="glass-card bg-white/5">
-              <TabsTrigger value="all" className="data-[state=active]:bg-orange data-[state=active]:text-white text-white/70">Todas</TabsTrigger>
-              <TabsTrigger value="published" className="data-[state=active]:bg-orange data-[state=active]:text-white text-white/70">Publicadas</TabsTrigger>
-              <TabsTrigger value="draft" className="data-[state=active]:bg-orange data-[state=active]:text-white text-white/70">Borrador</TabsTrigger>
-              <TabsTrigger value="deleted" className="data-[state=active]:bg-orange data-[state=active]:text-white text-white/70">
+              <TabsTrigger value="all" className="data-[state=active]:bg-orange data-[state=active]:text-white text-black/70">Todas</TabsTrigger>
+              <TabsTrigger value="published" className="data-[state=active]:bg-orange data-[state=active]:text-white text-black/70">Publicadas</TabsTrigger>
+              <TabsTrigger value="draft" className="data-[state=active]:bg-orange data-[state=active]:text-white text-black/70">Borrador</TabsTrigger>
+              <TabsTrigger value="deleted" className="data-[state=active]:bg-orange data-[state=active]:text-white text-black/70">
                 Papelera ({deletedActivities.length})
               </TabsTrigger>
             </TabsList>

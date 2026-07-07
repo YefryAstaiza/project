@@ -102,7 +102,7 @@ export function Dashboard() {
   // Carrusel de novedades
   const newsCarouselRef = useRef<HTMLDivElement>(null);
   const [showNewsRightFade, setShowNewsRightFade] = useState(false);
-  const [isAutoScrolling, setIsAutoScrolling] = useState(true);
+  //const [isAutoScrolling, setIsAutoScrolling] = useState(true);
 
   const checkScroll = () => {
     if (carouselRef.current) {
@@ -131,56 +131,82 @@ export function Dashboard() {
     });
   }, [filteredProfileCards.length, news.length]);
 
-  // Auto-scroll del carrusel de novedades
-  useEffect(() => {
-    if (!newsCarouselRef.current || news.length === 0 || !isAutoScrolling) return;
+// Auto-scroll del carrusel de novedades - CORREGIDO
+useEffect(() => {
+  if (!newsCarouselRef.current || news.length === 0) return;
 
-    const container = newsCarouselRef.current;
-    let animationId: number;
-    let startTime: number;
-    const duration = 3000; // 3 segundos entre cada movimiento
-    const step = 1; // píxeles por frame
+  const container = newsCarouselRef.current;
+  let interval: NodeJS.Timeout | null = null;
+  let isPaused = false;
+  let resumeTimeout: NodeJS.Timeout | null = null;
 
-    const scroll = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = (timestamp - startTime) / duration;
+  const scrollStep = () => {
+    if (isPaused) return;
+    const maxScroll = container.scrollWidth - container.clientWidth;
+    if (container.scrollLeft >= maxScroll - 10) {
+      container.scrollLeft = 0;
+    } else {
+      container.scrollLeft += 1.5;
+    }
+  };
 
-      if (progress < 1) {
-        // Mover gradualmente
-        const maxScroll = container.scrollWidth - container.clientWidth;
-        if (container.scrollLeft >= maxScroll - 10) {
-          container.scrollLeft = 0;
-          startTime = timestamp;
-        } else {
-          container.scrollLeft += step;
-        }
-        animationId = requestAnimationFrame(scroll);
-      } else {
-        // Reiniciar el ciclo
-        startTime = timestamp;
-        const maxScroll = container.scrollWidth - container.clientWidth;
-        if (container.scrollLeft >= maxScroll - 10) {
-          container.scrollLeft = 0;
-        }
-        animationId = requestAnimationFrame(scroll);
-      }
-    };
+  const startAutoScroll = () => {
+    if (interval) {
+      clearInterval(interval);
+      interval = null;
+    }
+    isPaused = false;
+    interval = setInterval(scrollStep, 30);
+  };
 
-    // Pausar auto-scroll al hacer hover
-    const pauseAutoScroll = () => setIsAutoScrolling(false);
-    const resumeAutoScroll = () => setIsAutoScrolling(true);
+  const pauseAutoScroll = () => {
+    isPaused = true;
+    if (interval) {
+      clearInterval(interval);
+      interval = null;
+    }
+  };
 
-    container.addEventListener('mouseenter', pauseAutoScroll);
-    container.addEventListener('mouseleave', resumeAutoScroll);
+  const handleMouseEnter = () => {
+    pauseAutoScroll();
+    if (resumeTimeout) {
+      clearTimeout(resumeTimeout);
+      resumeTimeout = null;
+    }
+  };
 
-    animationId = requestAnimationFrame(scroll);
+  const handleMouseLeave = () => {
+    if (resumeTimeout) {
+      clearTimeout(resumeTimeout);
+      resumeTimeout = null;
+    }
+    // Esperar 2 segundos después de salir para reanudar
+    resumeTimeout = setTimeout(() => {
+      startAutoScroll();
+      resumeTimeout = null;
+    }, 2000);
+  };
 
-    return () => {
-      cancelAnimationFrame(animationId);
-      container.removeEventListener('mouseenter', pauseAutoScroll);
-      container.removeEventListener('mouseleave', resumeAutoScroll);
-    };
-  }, [news.length, isAutoScrolling]);
+  // Iniciar auto-scroll al montar
+  startAutoScroll();
+
+  // Event listeners
+  container.addEventListener('mouseenter', handleMouseEnter);
+  container.addEventListener('mouseleave', handleMouseLeave);
+
+  return () => {
+    if (interval) {
+      clearInterval(interval);
+      interval = null;
+    }
+    if (resumeTimeout) {
+      clearTimeout(resumeTimeout);
+      resumeTimeout = null;
+    }
+    container.removeEventListener('mouseenter', handleMouseEnter);
+    container.removeEventListener('mouseleave', handleMouseLeave);
+  };
+}, [news.length]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!carouselRef.current) return;
@@ -392,7 +418,7 @@ export function Dashboard() {
           <div className="flex items-center gap-2">
             <div className="h-[2px] w-7 bg-[#E85A1A] rounded-full" />
             <span className="font-syne text-[10px] font-bold tracking-[2.5px] uppercase text-[#E85A1A]">
-              Novedades del equipo
+              Novedades
             </span>
           </div>
 
@@ -475,7 +501,7 @@ export function Dashboard() {
                 <div className="p-1.5 rounded-lg bg-[#FEF0EA]">
                   <Gift className="h-4 w-4 text-[#E85A1A]" />
                 </div>
-                <h3 className="text-lg font-medium text-[#1E2245]">Cumpleaños</h3>
+                <h3 className="font-syne text-[10px] font-bold tracking-[2.5px] uppercase text-[#E85A1A]">Cumpleaños</h3>
                 <Badge className="bg-[#E85A1A] text-white">
                   {displayCumpleanos.length}
                 </Badge>
@@ -626,7 +652,7 @@ export function Dashboard() {
                 <div className="p-1.5 rounded-lg bg-[#FEF0EA]">
                   <Bell className="h-4 w-4 text-[#E85A1A]" />
                 </div>
-                <h3 className="text-lg font-medium text-[#1E2245]">Otras Novedades</h3>
+                <h3 className="font-syne text-[10px] font-bold tracking-[2.5px] uppercase text-[#E85A1A]">Otras Novedades</h3>
                 <Badge className="bg-[#1E2245] text-white">
                   {displayOthers.length}
                 </Badge>

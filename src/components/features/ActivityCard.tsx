@@ -49,10 +49,10 @@ export function ActivityCard({
   onCancel,
   showActions = false,
 }: ActivityCardProps) {
-  const isFull = activity.cupos ? activity.inscritos.length >= activity.cupos : false;
+  const isFull = activity.cupos && activity.inscritos.length >= activity.cupos;
   const isDisabled = activity.obligatorio || isFull;
-  const availableSpots = activity.cupos ? activity.cupos - activity.inscritos.length : null;
-  const isAvailable = availableSpots !== null ? availableSpots > 0 : true;
+  const availableSpots = activity.cupos ? activity.cupos - activity.inscritos.length : 0;
+  const isAvailable = availableSpots > 0;
   
   const imageUrl = activity.imagen || categoryImages[activity.categoria] || defaultActivityImage;
 
@@ -70,7 +70,7 @@ export function ActivityCard({
     >
       <div className="group bg-white border border-[#E4E6F0] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 h-full flex flex-col">
         {/* Imagen con overlay profesional */}
-        <div className="relative h-44 flex-shrink-0 overflow-hidden bg-[#1E2245]">
+        <div className="relative h-48 flex-shrink-0 overflow-hidden bg-gradient-to-r from-[#1E2245] to-[#303C72]">
           <img
             src={imageUrl}
             alt={activity.nombre}
@@ -81,7 +81,7 @@ export function ActivityCard({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
           
-          {/* Badge de obligatoriedad y disponibilidad */}
+          {/* Badge de disponibilidad */}
           <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
             {activity.obligatorio && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E85A1A] text-white text-[10px] font-extrabold uppercase tracking-wider shadow-lg">
@@ -89,8 +89,7 @@ export function ActivityCard({
                 Obligatoria
               </span>
             )}
-            {/* Solo mostrar badge de cupos si existe cupo */}
-            {activity.cupos !== null && activity.cupos !== undefined && (
+            {activity.cupos && (
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider shadow-lg ${
                 isFull 
                   ? 'bg-red-500 text-white' 
@@ -170,8 +169,8 @@ export function ActivityCard({
             </span>
           </div>
 
-          {/* Participantes - SOLO si hay cupos definidos */}
-          {activity.cupos !== null && activity.cupos !== undefined && activity.cupos > 0 && (
+          {/* Participantes */}
+          {activity.cupos && (
             <div className="flex items-center gap-2 mt-2">
               <Users className="h-4 w-4 text-[#9499BB] flex-shrink-0" />
               <div className="flex-1">
@@ -196,22 +195,11 @@ export function ActivityCard({
             </div>
           )}
 
-          {/* Si NO hay cupos, mostrar un mensaje de cupos ilimitados */}
-          {(!activity.cupos || activity.cupos === 0) && (
-            <div className="flex items-center gap-2 mt-2">
-              <Users className="h-4 w-4 text-[#9499BB] flex-shrink-0" />
-              <span className="text-sm text-[#5A5F80] font-medium">
-                Cupos ilimitados
-              </span>
-            </div>
-          )}
-
           {/* Botón de acción */}
           {showActions && (
             <div className="mt-4 pt-4 border-t border-[#F0F2FA]">
               {activity.obligatorio ? (
-                <div className="w-full py-3 rounded-xl bg-[#1E2245] text-white text-sm font-bold flex items-center justify-center gap-2">
-                  <Lock className="h-4 w-4" />
+                <div className="w-full py-3 rounded-xl bg-gradient-to-r from-[#1E2245] to-[#303C72] text-white text-sm font-bold flex items-center justify-center gap-2">                  <Lock className="h-4 w-4" />
                   Asistencia Obligatoria
                 </div>
               ) : isParticipating ? (
@@ -225,14 +213,14 @@ export function ActivityCard({
               ) : (
                 <button
                   className={`w-full py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
-                    isFull && activity.cupos 
-                      ? 'bg-[#F4F5FA] text-[#9499BB] cursor-not-allowed' 
-                      : 'bg-[#E85A1A] text-white hover:bg-[#C03510] shadow-sm hover:shadow-md'
-                  }`}
-                  disabled={isFull && activity.cupos !== null}
+  isFull && activity.cupos
+    ? 'bg-[#F4F5FA] text-[#9499BB] cursor-not-allowed'
+    : 'bg-gradient-to-r from-[#1E2245] to-[#303C72] hover:from-[#171B36] hover:to-[#27325F] text-white shadow-sm hover:shadow-md'
+}`}
+                  disabled={isFull}
                   onClick={onParticipate}
                 >
-                  {isFull && activity.cupos ? (
+                  {isFull ? (
                     <>
                       <XCircle className="h-4 w-4" />
                       Cupos Agotados
@@ -323,8 +311,7 @@ export function AdminActivityCard({
 
           <div className="flex items-center gap-2">
             <button
-              className="px-3 py-1.5 text-sm bg-[#F4F5FA] text-[#1E2245] rounded-xl hover:bg-[#E4E6F0] transition-colors font-bold"
-              onClick={onEdit}
+className="px-3 py-1.5 text-sm bg-[#1E2245] text-white rounded-xl hover:bg-[#171B36] transition-colors font-bold"              onClick={onEdit}
             >
               Editar
             </button>
@@ -344,9 +331,7 @@ export function AdminActivityCard({
               </button>
             )}
             <button
-              className="px-3 py-1.5 text-sm bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors font-bold border border-red-200"
-              onClick={onDelete}
-            >
+className="bg-gradient-to-br from-[#1B2042] via-[#2C356B] to-[#4A5DA8] text-white"            >
               Eliminar
             </button>
           </div>

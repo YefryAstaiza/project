@@ -292,7 +292,7 @@ export const mockUsers: User[] = [
     seniority: 'Junior',
     rol: 'empleado',
     estado: 'activo',
-    fechaIngreso: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 3 days ago
+    fechaIngreso: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
   },
@@ -307,7 +307,7 @@ export const mockUsers: User[] = [
     seniority: 'Semi Senior',
     rol: 'empleado',
     estado: 'activo',
-    fechaIngreso: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 5 days ago
+    fechaIngreso: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
   },
@@ -789,7 +789,7 @@ export const mockNews: News[] = [
   },
 ];
 
-// Mock new employees
+// Mock new employees - CON HOBBIES
 export const mockNewEmployees: NewEmployee[] = [
   {
     id: 'ne1',
@@ -798,6 +798,7 @@ export const mockNewEmployees: NewEmployee[] = [
     comentario: '¡Hola a todos! Soy diseñadora gráfica y me encanta crear experiencias visuales únicas. ¡Feliz de ser parte del equipo!',
     fechaPublicacion: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
     estado: 'publicada',
+    hobbies: ['🎨 Ilustración', '📸 Fotografía', '✏️ Lettering'], // <-- HOBBIES
     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
   },
@@ -808,11 +809,11 @@ export const mockNewEmployees: NewEmployee[] = [
     comentario: '¡Saludos! Soy desarrollador mobile con pasión por Flutter y React Native. Espero aportar mucho al equipo.',
     fechaPublicacion: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
     estado: 'publicada',
+    hobbies: ['📱 Flutter', '⚛️ React Native', '☕ Café'], // <-- HOBBIES
     createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
-
 // Mock reactions
 export const mockReactions: Reaction[] = [
   {

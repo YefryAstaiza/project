@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User, ProfileCard, Activity, News, NewEmployee, Reaction, Hobby } from '@/types';
+import { User, ProfileCard, Activity, News, NewEmployee, Reaction, Hobby, NewEmployeeReaction } from '@/types';
 import { mockUsers, mockProfileCards, mockActivities, mockNews, mockNewEmployees, mockReactions, mockHobbies } from '@/services/mockData';
 import { subDays } from 'date-fns';
 
@@ -31,6 +31,9 @@ interface AppState {
   newsReactions: Record<string, NewsReaction[]>;
   birthdayMessages: Record<string, BirthdayMessage[]>;
 
+  // ===== NUEVO: Reacciones para nuevos empleados =====
+  newEmployeeReactions: NewEmployeeReaction[];
+
   // User actions
   updateUser: (userId: string, updates: Partial<User>) => void;
 
@@ -52,6 +55,11 @@ interface AppState {
   // Nuevas acciones para mensajes de cumpleaños
   updateBirthdayMessages: (newsId: string, messages: BirthdayMessage[]) => void;
   getBirthdayMessages: (newsId: string) => BirthdayMessage[];
+
+  // ===== NUEVO: Acciones para reacciones en nuevos empleados =====
+  addNewEmployeeReaction: (newEmployeeId: string, userId: string, tipo: '👋' | '🎉' | '🔥' | '🤝') => void;
+  removeNewEmployeeReaction: (newEmployeeId: string, userId: string) => void;
+  getNewEmployeeReactions: (newEmployeeId: string) => NewEmployeeReaction[];
 
   // Activity actions
   addActivity: (activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt' | 'inscritos'>) => void;
@@ -97,6 +105,7 @@ export const useAppStore = create<AppState>()(
       // Inicializar nuevos estados vacíos
       newsReactions: {},
       birthdayMessages: {},
+      newEmployeeReactions: [],
 
       // User actions
       updateUser: (userId, updates) => {
@@ -162,14 +171,12 @@ export const useAppStore = create<AppState>()(
         );
 
         if (existingReaction) {
-          // Update existing reaction
           set((state) => ({
             reactions: state.reactions.map((r) =>
               r.id === existingReaction.id ? { ...r, tipo } : r
             ),
           }));
         } else {
-          // Add new reaction
           const user = state.users.find((u) => u.id === userId);
           if (!user) return;
 
@@ -202,8 +209,7 @@ export const useAppStore = create<AppState>()(
         );
       },
 
-      // ===== NUEVAS ACCIONES PARA REACCIONES EN NOVEDADES =====
-
+      // ===== REACCIONES EN NOVEDADES =====
       updateNewsReactions: (newsId, reactions) => {
         set((state) => ({
           newsReactions: {
@@ -217,8 +223,7 @@ export const useAppStore = create<AppState>()(
         return get().newsReactions[newsId] || [];
       },
 
-      // ===== NUEVAS ACCIONES PARA MENSAJES DE CUMPLEAÑOS =====
-
+      // ===== MENSAJES DE CUMPLEAÑOS =====
       updateBirthdayMessages: (newsId, messages) => {
         set((state) => ({
           birthdayMessages: {
@@ -230,6 +235,54 @@ export const useAppStore = create<AppState>()(
 
       getBirthdayMessages: (newsId) => {
         return get().birthdayMessages[newsId] || [];
+      },
+
+      // ===== NUEVO: REACCIONES PARA NUEVOS EMPLEADOS =====
+      addNewEmployeeReaction: (newEmployeeId, userId, tipo) => {
+        const state = get();
+        const user = state.users.find((u) => u.id === userId);
+        if (!user) return;
+
+        // Verificar si ya existe reacción de este usuario
+        const existingIndex = state.newEmployeeReactions.findIndex(
+          (r) => r.newEmployeeId === newEmployeeId && r.userId === userId
+        );
+
+        if (existingIndex !== -1) {
+          // Actualizar reacción existente
+          set((state) => ({
+            newEmployeeReactions: state.newEmployeeReactions.map((r, index) =>
+              index === existingIndex ? { ...r, tipo } : r
+            ),
+          }));
+        } else {
+          // Agregar nueva reacción
+          const newReaction: NewEmployeeReaction = {
+            id: `ner-${Date.now()}`,
+            newEmployeeId,
+            userId,
+            user,
+            tipo,
+            createdAt: new Date().toISOString(),
+          };
+          set((state) => ({
+            newEmployeeReactions: [...state.newEmployeeReactions, newReaction],
+          }));
+        }
+      },
+
+      removeNewEmployeeReaction: (newEmployeeId, userId) => {
+        set((state) => ({
+          newEmployeeReactions: state.newEmployeeReactions.filter(
+            (r) => !(r.newEmployeeId === newEmployeeId && r.userId === userId)
+          ),
+        }));
+      },
+
+      getNewEmployeeReactions: (newEmployeeId) => {
+        return get().newEmployeeReactions.filter(
+          (r) => r.newEmployeeId === newEmployeeId
+        );
       },
 
       // Activity actions
@@ -361,6 +414,7 @@ export const useAppStore = create<AppState>()(
           comentario,
           fechaPublicacion: new Date().toISOString(),
           estado: 'publicada',
+          hobbies: [],
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
@@ -429,7 +483,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'conecta360-data',
-      version: 1, // 👈 Agregado para forzar actualización de datos antiguos
+      version: 1,
     }
   )
 );
