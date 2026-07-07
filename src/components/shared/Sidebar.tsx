@@ -4,6 +4,9 @@ import {
   LayoutDashboard,
   Settings,
   Users,
+  Bell,
+  FileText,
+  Briefcase,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
@@ -18,10 +21,16 @@ interface NavItem {
 
 const userNavItems: NavItem[] = [
   { title: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { title: 'Notificaciones', href: '/notificaciones', icon: Bell },
+  { title: 'Hoja de Vida', href: '/hoja-de-vida', icon: FileText },
+  { title: 'Actividades Proyectos', href: '/actividades-proyectos', icon: Briefcase },
 ];
 
 const adminNavItems: NavItem[] = [
   { title: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { title: 'Notificaciones', href: '/notificaciones', icon: Bell },
+  { title: 'Hoja de Vida', href: '/hoja-de-vida', icon: FileText },
+  { title: 'Actividades Proyectos', href: '/actividades-proyectos', icon: Briefcase },
   { title: 'Gestión Actividades', href: '/admin/activities', icon: Settings, adminOnly: true },
 ];
 
@@ -33,17 +42,19 @@ export function Sidebar() {
 
   return (
     <div className="flex h-full w-64 flex-col border-r border-gray-200 bg-white">
-      <div className="flex h-16 items-center border-b border-gray-200 px-6">
+      {/* ===== HEADER AZUL - SOLO ESTA PARTE ===== */}
+      <div className="flex h-16 items-center border-b border-[#2D3163] bg-[#1E2245] px-6">
         <Link to="/" className="flex items-center gap-2">
           <img
             src="https://katary360.katary.co:8088/assets/images/katary/logo-1.png"
             alt="Katary"
             className="h-10 w-10 object-contain"
           />
-          <span className="text-lg font-semibold text-gray-900">Conecta360</span>
+          <span className="text-lg font-semibold text-white">Conecta360</span>
         </Link>
       </div>
 
+      {/* ===== RESTO DEL SIDEBAR EN BLANCO ===== */}
       <ScrollArea className="flex-1 px-3 py-4">
         <nav className="flex flex-col gap-1">
           {navItems.map((item) => {

@@ -429,6 +429,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'conecta360-data',
+      version: 1, // 👈 Agregado para forzar actualización de datos antiguos
     }
   )
 );
