@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAppStore } from '@/stores/appStore';
 import { useAuthStore } from '@/stores/authStore';
-import { NewsCard } from '@/components/features/NewsCard';
+//import { NewsCard } from '@/components/features/NewsCard';
+import { KatariBot } from '@/components/features/KatariBot';
+import { PollBubble } from '@/components/features/PollBubble';
 import { NewEmployeeCard } from '@/components/features/NewEmployeeCard';
 import { ProfileCard } from '@/components/features/ProfileCard';
 import { ActivityCard } from '@/components/features/ActivityCard';
@@ -486,7 +488,7 @@ export function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen relative z-10 overflow-x-hidden bg-[#F8F5F0]">
+    <div className="min-h-screen relative z-10 overflow-x-hidden bg-white">
       <div className="container max-w-7xl mx-auto py-6 space-y-8 px-4 md:px-6">
         {/* Header */}
         <div className="flex flex-col gap-2">
@@ -569,7 +571,7 @@ export function Dashboard() {
 
             {showNewsRightFade && (
               <div className="absolute right-0 top-0 bottom-2 w-12 pointer-events-none
-                bg-gradient-to-l from-[#F8F5F0] to-transparent" />
+                bg-gradient-to-l from-white to-transparent" />
             )}
           </div>
         </section>
@@ -611,12 +613,16 @@ export function Dashboard() {
                     
                   </div>
                   
+                  
+                    
+                  
                 </div>
                 <div className="flex-1 h-px bg-[#E4E6F0]" />
                 <div className="flex items-center gap-2">
                   <div className="p-1.5 rounded-lg bg-[#FEF0EA]">
                     
                   </div>
+                  
                   
                 </div>
               </div>
@@ -806,7 +812,7 @@ export function Dashboard() {
 
                 {showNewsSectionRightFade && (
                   <div className="absolute right-0 top-0 bottom-2 w-12 pointer-events-none
-                    bg-gradient-to-l from-[#F8F5F0] to-transparent" />
+                    bg-gradient-to-l from-white to-transparent" />
                 )}
               </div>
             </div>
@@ -905,7 +911,7 @@ export function Dashboard() {
 
               {showRightFade && (
                 <div className="absolute right-0 top-0 bottom-2 w-12 pointer-events-none
-                  bg-gradient-to-l from-[#F8F5F0] to-transparent" />
+                  bg-gradient-to-l from-white to-transparent" />
               )}
             </div>
           )}
@@ -980,7 +986,7 @@ export function Dashboard() {
               Próximamente
             </Badge>
           </div>
-          <div className="bg-[#F4F5FA] border border-[#E4E6F0] rounded-2xl p-6 text-center">
+          <div className="bg-white border border-[#E4E6F0] rounded-2xl p-6 text-center">
             <Sparkles className="h-8 w-8 mx-auto mb-2 text-[#9499BB]" />
             <p className="text-sm text-[#9499BB] font-semibold">
               Pregunta lo que necesites y la IA te ayudará
@@ -991,6 +997,9 @@ export function Dashboard() {
           </div>
         </section>
       </div>
+
+      <KatariBot />
+      <PollBubble />
 
       {/* Edit Profile Dialog */}
       {editingCard && (

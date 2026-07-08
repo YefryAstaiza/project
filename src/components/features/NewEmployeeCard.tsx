@@ -20,26 +20,26 @@ const REACTION_OPTIONS = [
   { emoji: '🤝', label: 'Apoyar' },
 ];
 
-// Paleta de acentos: cada tarjeta "hereda" un color distinto según su id
+// Paleta de azules corporativos - solo tonos azul oscuro
 const ACCENT_PALETTES = [
-  { grad: 'from-[#FF6B6B] to-[#FFA36C]', solid: '#FF6B6B', soft: '#FFF1EC' },
-  { grad: 'from-[#6C5CE7] to-[#A29BFE]', solid: '#6C5CE7', soft: '#F1EFFE' },
-  { grad: 'from-[#00B894] to-[#55EFC4]', solid: '#00B894', soft: '#E7FBF4' },
-  { grad: 'from-[#0984E3] to-[#74B9FF]', solid: '#0984E3', soft: '#EAF4FF' },
-  { grad: 'from-[#E17055] to-[#FAB1A0]', solid: '#E17055', soft: '#FDEEEA' },
-  { grad: 'from-[#FD79A8] to-[#FFC2E2]', solid: '#FD79A8', soft: '#FFEFF6' },
+  { grad: 'from-[#0E1733] to-[#1E2245]', solid: '#1E2245', soft: '#EEF0F7' },
+  { grad: 'from-[#1E2245] to-[#2D3163]', solid: '#1E2245', soft: '#EEF0F7' },
+  { grad: 'from-[#0E1733] to-[#2D3163]', solid: '#1E2245', soft: '#EEF0F7' },
+  { grad: 'from-[#16224A] to-[#1E2245]', solid: '#1E2245', soft: '#EEF0F7' },
+  { grad: 'from-[#0E1733] to-[#16224A]', solid: '#1E2245', soft: '#EEF0F7' },
+  { grad: 'from-[#1E2245] to-[#2D3163]', solid: '#1E2245', soft: '#EEF0F7' },
 ];
 
 const HOBBY_COLORS = [
-  'bg-[#FFF1EC] text-[#E85A1A]',
-  'bg-[#EAF4FF] text-[#0984E3]',
-  'bg-[#E7FBF4] text-[#00B894]',
-  'bg-[#F1EFFE] text-[#6C5CE7]',
-  'bg-[#FFEFF6] text-[#D6336C]',
-  'bg-[#FFF9E6] text-[#B08900]',
+  'bg-[#FEF0EA] text-[#E85A1A]',
+  'bg-[#EAF4FF] text-[#3B82F6]',
+  'bg-[#EEF0F7] text-[#1E2245]',
+  'bg-[#FEF3E8] text-[#E85A1A]',
+  'bg-[#EAF4FF] text-[#3B82F6]',
+  'bg-[#FEF0EA] text-[#E85A1A]',
 ];
 
-const CONFETTI_COLORS = ['#FFD93D', '#6BCB77', '#4D96FF', '#FF6B6B', '#C780FA'];
+const CONFETTI_COLORS = ['#E85A1A', '#3B82F6', '#F59E0B', '#60A5FA', '#C03510'];
 
 function pickPalette(seed: string) {
   let hash = 0;
@@ -206,8 +206,7 @@ export function NewEmployeeCard({ employee }: NewEmployeeCardProps) {
               initial={{ opacity: 0, y: 10, scale: 0.8 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.8 }}
-              className="absolute -top-3 left-1/2 -translate-x-1/2 z-50 bg-white shadow-lg rounded-full px-3 py-1 text-xs font-bold whitespace-nowrap"
-              style={{ color: palette.solid }}
+              className="absolute -top-3 left-1/2 -translate-x-1/2 z-50 bg-[#1E2245] shadow-lg rounded-full px-3 py-1 text-xs font-bold whitespace-nowrap text-[#E85A1A] border border-[#E85A1A]/30"
             >
               🔥 ¡Le encanta al equipo!
             </motion.div>
@@ -229,12 +228,12 @@ export function NewEmployeeCard({ employee }: NewEmployeeCardProps) {
               position: 'relative',
               zIndex: isFlipped ? 0 : 1,
             }}
-            className="bg-white border border-[#E4E6F0] rounded-2xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden h-full flex flex-col"
+            className="rounded-2xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden h-full flex flex-col"
           >
-            {/* Cabecera con color de acento propio + patrón animado + stickers */}
+            {/* Cabecera: AZUL OSCURO DEGRADADO */}
             <div className={`relative px-4 pt-4 pb-5 bg-gradient-to-br ${palette.grad}`}>
               <motion.div
-                className="absolute inset-0 opacity-25"
+                className="absolute inset-0 opacity-20"
                 style={{
                   backgroundImage: 'radial-gradient(rgba(255,255,255,0.8) 1px, transparent 1px)',
                   backgroundSize: '14px 14px',
@@ -257,11 +256,9 @@ export function NewEmployeeCard({ employee }: NewEmployeeCardProps) {
                 ✨
               </motion.span>
 
-              {/* Fila principal: avatar+nombre a la izquierda, dado en su propia columna a la derecha.
-                  Al ser flex (no absolute) ninguno puede montarse sobre el otro. */}
               <div className="relative z-10 flex items-start justify-between gap-2">
                 <div className="flex items-start gap-3 min-w-0">
-                  {/* Avatar animado, con wiggle, burbuja de saludo y badge NUEVO anclado a su esquina */}
+                  {/* Avatar animado */}
                   <motion.div
                     className="relative flex-shrink-0"
                     style={{ width: 64, height: 64 }}
@@ -277,8 +274,7 @@ export function NewEmployeeCard({ employee }: NewEmployeeCardProps) {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 6, scale: 0.8 }}
                           transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                          className="absolute -top-8 left-0 z-30 bg-white text-[11px] font-semibold px-2 py-1 rounded-lg shadow-md whitespace-nowrap"
-                          style={{ color: palette.solid }}
+                          className="absolute -top-8 left-0 z-30 bg-[#1E2245] text-[11px] font-semibold px-2 py-1 rounded-lg shadow-md whitespace-nowrap text-white"
                         >
                           ¡Hola! 👋
                         </motion.div>
@@ -287,27 +283,24 @@ export function NewEmployeeCard({ employee }: NewEmployeeCardProps) {
                     <AnimatedAvatar
                       initials={initials}
                       size={64}
-                      colors={['#E85A1A', '#2DB87A', '#3B82F6', '#F59E0B']}
+                      colors={['#E85A1A', '#3B82F6', '#F59E0B', '#60A5FA']}
                       imageUrl={employeeUser.foto}
                     />
-                    {/* Badge NUEVO: vive en la esquina del avatar, nunca sobre el nombre */}
+                    {/* Badge NUEVO */}
                     <div className="absolute -bottom-1 -right-1 z-20">
                       <motion.span
                         className="absolute inset-0 rounded-full"
-                        style={{ background: palette.solid }}
+                        style={{ background: '#E85A1A' }}
                         animate={{ scale: [1, 1.7], opacity: [0.6, 0] }}
                         transition={{ duration: 1.8, repeat: Infinity, ease: 'easeOut' }}
                       />
-                      <span
-                        className="relative block bg-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-full border-2 border-white uppercase tracking-[0.5px] shadow-lg"
-                        style={{ color: palette.solid }}
-                      >
+                      <span className="relative block bg-[#E85A1A] text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-full border-2 border-[#1E2245] uppercase tracking-[0.5px] shadow-lg">
                         Nuevo
                       </span>
                     </div>
                   </motion.div>
 
-                  {/* Name block: min-w-0 + line-clamp trunca el texto antes de chocar con el dado */}
+                  {/* Name block */}
                   <div className="min-w-0 pt-1">
                     <h3 className="text-white font-semibold text-base leading-tight line-clamp-1 drop-shadow-sm">
                       {employeeUser.nombre} {employeeUser.apellido}
@@ -316,7 +309,7 @@ export function NewEmployeeCard({ employee }: NewEmployeeCardProps) {
                   </div>
                 </div>
 
-                {/* Dado: columna propia a la derecha, con su explicación siempre visible debajo (no depende de hover) */}
+                {/* Dado */}
                 <div className="flex-shrink-0 flex flex-col items-center gap-1 pt-0.5">
                   <motion.button
                     onClick={handleFlip}
@@ -325,20 +318,22 @@ export function NewEmployeeCard({ employee }: NewEmployeeCardProps) {
                     whileHover={{ scale: 1.15, rotate: 12 }}
                     whileTap={{ scale: 0.9 }}
                     aria-label="Ver dato curioso sobre esta persona"
-                    className="w-11 h-11 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center text-xl shadow-md border-2 border-white/20 hover:border-white/50 transition-colors cursor-pointer"
+                    className="w-11 h-11 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-xl shadow-md border-2 border-white/20 hover:border-white/50 transition-colors cursor-pointer"
                   >
                     🎲
                   </motion.button>
-                  <span className="text-[15 font-semibold text-white/85 whitespace-nowrap">Dato curioso</span>
+                  <span className="text-[10px] font-semibold text-white/85 whitespace-nowrap">Dato curioso</span>
                 </div>
               </div>
             </div>
 
-            {/* Cuerpo de la tarjeta */}
+            {/* Cuerpo: BLANCO */}
             <div className="px-4 py-3 bg-white flex-1 flex flex-col">
               {/* Tags row */}
               <div className="flex flex-wrap gap-2">
-                <span className="card-tag-neutral">{employeeUser.carrera}</span>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#F4F5FA] text-[#5A5F80] border border-[#E4E6F0]">
+                  {employeeUser.carrera}
+                </span>
                 <span
                   className="text-xs font-bold px-2 py-0.5 rounded-full"
                   style={{ background: palette.soft, color: palette.solid }}
@@ -363,7 +358,7 @@ export function NewEmployeeCard({ employee }: NewEmployeeCardProps) {
                 </div>
               )}
 
-              {/* Hobbies, con entrada escalonada y color rotativo */}
+              {/* Hobbies */}
               {employee.hobbies && employee.hobbies.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mt-3">
                   {employee.hobbies.map((hobby, i) => (
@@ -452,8 +447,7 @@ export function NewEmployeeCard({ employee }: NewEmployeeCardProps) {
               {/* Date row */}
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#F0F2FA]">
                 <span
-                  className="text-xs flex items-center"
-                  style={{ color: 'var(--muted-text)' }}
+                  className="text-xs flex items-center text-[#9499BB]"
                   title={format(new Date(employee.fechaPublicacion), "d 'de' MMMM, yyyy", { locale: es })}
                 >
                   <Sparkles className="h-3 w-3 inline mr-1.5" style={{ color: palette.solid }} />

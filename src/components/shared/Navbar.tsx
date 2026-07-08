@@ -9,84 +9,98 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Bell, LogOut, Moon, Sun, User } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { LogOut, User, Menu, ChevronDown } from 'lucide-react';
 
-export function Navbar() {
+interface NavbarProps {
+  // Opcional: si tienes un sidebar, conecta este callback para abrirlo/cerrarlo.
+  onMenuClick?: () => void;
+}
+
+export function Navbar({ onMenuClick }: NavbarProps) {
   const { user, logout } = useAuthStore();
-  const { theme, setTheme } = useTheme();
 
-  const initials = user
-    ? `${user.nombre[0]}${user.apellido[0]}`
-    : 'UN';
+  const getRolLabel = (rol: string) => {
+    const roles: Record<string, string> = {
+      admin: 'Administrador',
+      ceo: 'CEO',
+      director_proyecto: 'Director de Proyecto',
+      asistente_gerencia: 'Asistente de Gerencia',
+      empleado: 'Colaborador',
+    };
+    return roles[rol] || 'Colaborador';
+  };
 
   return (
-    <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b border-[#2D3163] bg-[#1E2245] px-4">
-      <div className="flex flex-1 items-center justify-end gap-4">
-        {/* Theme Toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="text-white/70 hover:text-white hover:bg-white/10 border-0"
+    <header
+      className="sticky top-0 z-50 flex h-14 items-center justify-between px-4 sm:px-6"
+      style={{
+        // Degradado igual a la referencia: azul muy oscuro a la izquierda que se aclara
+        // hacia la derecha, con un "glow" radial suave para el brillo central.
+        background: `
+          radial-gradient(560px circle at 72% 40%, rgba(130,160,255,0.35), transparent 60%),
+          linear-gradient(90deg, #05081C 0%, #0E1440 26%, #1B2657 50%, #2C3F8C 74%, #3D56D6 100%)
+        `,
+      }}
+    >
+      {/* Izquierda: ícono de menú + mensaje de bienvenida */}
+      <div className="flex items-center gap-3 min-w-0">
+        <button
+          onClick={onMenuClick}
+          aria-label="Abrir menú"
+          className="text-white/90 hover:text-white transition-colors flex-shrink-0"
         >
-          <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Cambiar tema</span>
-        </Button>
-
-        {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative text-white/70 hover:text-white hover:bg-white/10 border-0">
-          <Bell className="h-5 w-5" />
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#E85A1A] text-[10px] font-medium text-white border border-[#E85A1A]/30">
-            3
-          </span>
-          <span className="sr-only">Notificaciones</span>
-        </Button>
-
-        {/* User Menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-9 gap-2 px-2 text-white/90 hover:text-white hover:bg-white/10">
-              <Avatar className="h-8 w-8 ring-2 ring-[#E85A1A]/30">
-                <AvatarImage src={user?.foto} alt={user?.nombre} />
-                <AvatarFallback className="bg-[#E85A1A] text-xs text-white">{initials}</AvatarFallback>
-              </Avatar>
-              <div className="hidden flex-col items-start text-left md:flex">
-                <span className="text-sm font-medium text-white">
-                  {user?.nombre} {user?.apellido}
-                </span>
-                <span className="text-xs text-white/60">{user?.cargo}</span>
-              </div>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56 bg-[#2D3163] border-[#3D4170] text-white" align="end" forceMount>
-            <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium text-white">
-                  {user?.nombre} {user?.apellido}
-                </p>
-                <p className="text-xs leading-none text-white/60">
-                  {user?.email}
-                </p>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-[#3D4170]" />
-            <DropdownMenuItem className="gap-2 text-white/80 hover:text-white hover:bg-white/10 focus:text-white focus:bg-white/10">
-              <User className="h-4 w-4" />
-              Mi Perfil
-            </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-[#3D4170]" />
-            <DropdownMenuItem
-              className="gap-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 focus:text-red-300 focus:bg-red-500/10"
-              onClick={logout}
-            >
-              <LogOut className="h-4 w-4" />
-              Cerrar Sesión
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          <Menu className="h-5 w-5" />
+        </button>
+        <p className="text-sm text-white truncate">
+          Bienvenido{' '}
+          <span className="font-bold">
+            {user?.nombre?.toUpperCase()} {user?.apellido?.toUpperCase()}
+          </span>{' '}
+          <span className="text-white/70">( {getRolLabel(user?.rol || 'empleado')} )</span>
+        </p>
       </div>
+
+      {/* Derecha: avatar + email + flecha, todo en un solo trigger de dropdown */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            className="flex items-center gap-2 px-2 text-white hover:bg-white/10 flex-shrink-0"
+          >
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={user?.foto} alt={user?.nombre} />
+              <AvatarFallback className="bg-white text-[#1E2245]">
+                <User className="h-4 w-4" />
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm text-white/90 hidden sm:inline">{user?.email}</span>
+            <ChevronDown className="h-4 w-4 text-white/70" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56 bg-[#2D3163] border-[#3D4170] text-white" align="end">
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-medium text-white">
+                {user?.nombre} {user?.apellido}
+              </p>
+              <p className="text-xs leading-none text-white/60">{user?.email}</p>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator className="bg-[#3D4170]" />
+          <DropdownMenuItem className="gap-2 text-white/80 hover:text-white hover:bg-white/10 focus:text-white focus:bg-white/10">
+            <User className="h-4 w-4" />
+            Mi Perfil
+          </DropdownMenuItem>
+          <DropdownMenuSeparator className="bg-[#3D4170]" />
+          <DropdownMenuItem
+            className="gap-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 focus:text-red-300 focus:bg-red-500/10"
+            onClick={logout}
+          >
+            <LogOut className="h-4 w-4" />
+            Cerrar Sesión
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </header>
   );
 }

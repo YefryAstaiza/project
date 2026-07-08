@@ -1,6 +1,17 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User, ProfileCard, Activity, News, NewEmployee, Reaction, Hobby, NewEmployeeReaction } from '@/types';
+import { 
+  User, 
+  ProfileCard, 
+  Activity, 
+  News, 
+  NewEmployee, 
+  Reaction, 
+  Hobby, 
+  NewEmployeeReaction,
+  CommunityPost,
+  CommunityComment
+} from '@/types';
 import { mockUsers, mockProfileCards, mockActivities, mockNews, mockNewEmployees, mockReactions, mockHobbies } from '@/services/mockData';
 import { subDays } from 'date-fns';
 
@@ -31,8 +42,11 @@ interface AppState {
   newsReactions: Record<string, NewsReaction[]>;
   birthdayMessages: Record<string, BirthdayMessage[]>;
 
-  // ===== NUEVO: Reacciones para nuevos empleados =====
+  // Reacciones para nuevos empleados
   newEmployeeReactions: NewEmployeeReaction[];
+
+  // Publicaciones de la comunidad
+  communityPosts: CommunityPost[];
 
   // User actions
   updateUser: (userId: string, updates: Partial<User>) => void;
@@ -56,10 +70,17 @@ interface AppState {
   updateBirthdayMessages: (newsId: string, messages: BirthdayMessage[]) => void;
   getBirthdayMessages: (newsId: string) => BirthdayMessage[];
 
-  // ===== NUEVO: Acciones para reacciones en nuevos empleados =====
+  // Acciones para reacciones en nuevos empleados
   addNewEmployeeReaction: (newEmployeeId: string, userId: string, tipo: '👋' | '🎉' | '🔥' | '🤝') => void;
   removeNewEmployeeReaction: (newEmployeeId: string, userId: string) => void;
   getNewEmployeeReactions: (newEmployeeId: string) => NewEmployeeReaction[];
+
+  // Acciones para publicaciones de la comunidad
+  addCommunityPost: (userId: string, content: string, category?: 'venta' | 'evento' | 'anuncio' | 'pregunta' | 'otro') => void;
+  likeCommunityPost: (postId: string, userId: string) => void;
+  addCommunityComment: (postId: string, userId: string, content: string) => void;
+  deleteCommunityPost: (postId: string, userId: string) => void;
+  getCommunityPosts: () => CommunityPost[];
 
   // Activity actions
   addActivity: (activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt' | 'inscritos'>) => void;
@@ -106,6 +127,7 @@ export const useAppStore = create<AppState>()(
       newsReactions: {},
       birthdayMessages: {},
       newEmployeeReactions: [],
+      communityPosts: [],
 
       // User actions
       updateUser: (userId, updates) => {
@@ -237,26 +259,23 @@ export const useAppStore = create<AppState>()(
         return get().birthdayMessages[newsId] || [];
       },
 
-      // ===== NUEVO: REACCIONES PARA NUEVOS EMPLEADOS =====
+      // ===== REACCIONES PARA NUEVOS EMPLEADOS =====
       addNewEmployeeReaction: (newEmployeeId, userId, tipo) => {
         const state = get();
         const user = state.users.find((u) => u.id === userId);
         if (!user) return;
 
-        // Verificar si ya existe reacción de este usuario
         const existingIndex = state.newEmployeeReactions.findIndex(
           (r) => r.newEmployeeId === newEmployeeId && r.userId === userId
         );
 
         if (existingIndex !== -1) {
-          // Actualizar reacción existente
           set((state) => ({
             newEmployeeReactions: state.newEmployeeReactions.map((r, index) =>
               index === existingIndex ? { ...r, tipo } : r
             ),
           }));
         } else {
-          // Agregar nueva reacción
           const newReaction: NewEmployeeReaction = {
             id: `ner-${Date.now()}`,
             newEmployeeId,
@@ -283,6 +302,74 @@ export const useAppStore = create<AppState>()(
         return get().newEmployeeReactions.filter(
           (r) => r.newEmployeeId === newEmployeeId
         );
+      },
+
+      // ===== PUBLICACIONES DE LA COMUNIDAD =====
+      addCommunityPost: (userId, content, category) => {
+        const state = get();
+        const user = state.users.find((u) => u.id === userId);
+        if (!user || !content.trim()) return;
+
+        const newPost: CommunityPost = {
+          id: `post-${Date.now()}`,
+          userId,
+          user,
+          content: content.trim(),
+          category: category || 'otro',
+          likes: [],
+          comments: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        set((state) => ({
+          communityPosts: [newPost, ...state.communityPosts],
+        }));
+      },
+
+      likeCommunityPost: (postId, userId) => {
+        set((state) => ({
+          communityPosts: state.communityPosts.map((post) => {
+            if (post.id !== postId) return post;
+            const likes = post.likes.includes(userId)
+              ? post.likes.filter((id) => id !== userId)
+              : [...post.likes, userId];
+            return { ...post, likes };
+          }),
+        }));
+      },
+
+      addCommunityComment: (postId, userId, content) => {
+        const state = get();
+        const user = state.users.find((u) => u.id === userId);
+        if (!user || !content.trim()) return;
+
+        const newComment: CommunityComment = {
+          id: `comment-${Date.now()}`,
+          userId,
+          user,
+          content: content.trim(),
+          createdAt: new Date().toISOString(),
+        };
+
+        set((state) => ({
+          communityPosts: state.communityPosts.map((post) => {
+            if (post.id !== postId) return post;
+            return { ...post, comments: [...post.comments, newComment] };
+          }),
+        }));
+      },
+
+      deleteCommunityPost: (postId, userId) => {
+        set((state) => ({
+          communityPosts: state.communityPosts.filter(
+            (post) => !(post.id === postId && post.userId === userId)
+          ),
+        }));
+      },
+
+      getCommunityPosts: () => {
+        return get().communityPosts;
       },
 
       // Activity actions
