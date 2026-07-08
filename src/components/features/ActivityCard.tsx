@@ -331,9 +331,11 @@ className="px-3 py-1.5 text-sm bg-[#1E2245] text-white rounded-xl hover:bg-[#171
               </button>
             )}
             <button
-className="bg-gradient-to-br from-[#1B2042] via-[#2C356B] to-[#4A5DA8] text-white"            >
-              Eliminar
-            </button>
+  className="px-3 py-1.5 text-sm font-bold rounded-xl bg-gradient-to-r from-[#1E2245] to-[#303C72] hover:from-[#171B36] hover:to-[#27325F] text-white transition-all duration-300 shadow-sm hover:shadow-md"
+  onClick={onDelete}
+>
+  Eliminar
+</button>
           </div>
         </div>
       </div>

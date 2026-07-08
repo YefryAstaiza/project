@@ -44,7 +44,7 @@ const defaultImages: Record<string, string> = {
   noticia: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&h=400&fit=crop',
 };
 
-// Opciones de reacción (mismo que ProfileCard)
+// Opciones de reacción
 const REACTION_OPTIONS = [
   { tipo: 'like', emoji: '👍', label: 'Me gusta' },
   { tipo: 'felicidades', emoji: '🎉', label: 'Felicidades' },
@@ -99,10 +99,13 @@ export function Dashboard() {
   const startX = useRef(0);
   const scrollLeftPos = useRef(0);
 
-  // Carrusel de novedades
+  // Carrusel de novedades (Sección 0)
   const newsCarouselRef = useRef<HTMLDivElement>(null);
   const [showNewsRightFade, setShowNewsRightFade] = useState(false);
-  //const [isAutoScrolling, setIsAutoScrolling] = useState(true);
+
+  // Carrusel de novedades (Sección 1)
+  const newsSectionCarouselRef = useRef<HTMLDivElement>(null);
+  const [showNewsSectionRightFade, setShowNewsSectionRightFade] = useState(false);
 
   const checkScroll = () => {
     if (carouselRef.current) {
@@ -118,95 +121,178 @@ export function Dashboard() {
     }
   };
 
+  const checkNewsSectionScroll = () => {
+    if (newsSectionCarouselRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = newsSectionCarouselRef.current;
+      setShowNewsSectionRightFade(scrollLeft + clientWidth < scrollWidth - 10);
+    }
+  };
+
   useEffect(() => {
     checkScroll();
     checkNewsScroll();
+    checkNewsSectionScroll();
     window.addEventListener('resize', () => {
       checkScroll();
       checkNewsScroll();
+      checkNewsSectionScroll();
     });
     return () => window.removeEventListener('resize', () => {
       checkScroll();
       checkNewsScroll();
+      checkNewsSectionScroll();
     });
   }, [filteredProfileCards.length, news.length]);
 
-// Auto-scroll del carrusel de novedades - CORREGIDO
-useEffect(() => {
-  if (!newsCarouselRef.current || news.length === 0) return;
+  // Auto-scroll del carrusel de novedades (Sección 0)
+  useEffect(() => {
+    if (!newsCarouselRef.current || news.length === 0) return;
 
-  const container = newsCarouselRef.current;
-  let interval: NodeJS.Timeout | null = null;
-  let isPaused = false;
-  let resumeTimeout: NodeJS.Timeout | null = null;
+    const container = newsCarouselRef.current;
+    let interval: NodeJS.Timeout | null = null;
+    let isPaused = false;
+    let resumeTimeout: NodeJS.Timeout | null = null;
 
-  const scrollStep = () => {
-    if (isPaused) return;
-    const maxScroll = container.scrollWidth - container.clientWidth;
-    if (container.scrollLeft >= maxScroll - 10) {
-      container.scrollLeft = 0;
-    } else {
-      container.scrollLeft += 1.5;
-    }
-  };
+    const scrollStep = () => {
+      if (isPaused || !container) return;
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      if (container.scrollLeft >= maxScroll - 5) {
+        container.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        container.scrollBy({ left: 2, behavior: 'smooth' });
+      }
+    };
 
-  const startAutoScroll = () => {
-    if (interval) {
-      clearInterval(interval);
-      interval = null;
-    }
-    isPaused = false;
-    interval = setInterval(scrollStep, 30);
-  };
+    const startAutoScroll = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+      isPaused = false;
+      interval = setInterval(scrollStep, 80);
+    };
 
-  const pauseAutoScroll = () => {
-    isPaused = true;
-    if (interval) {
-      clearInterval(interval);
-      interval = null;
-    }
-  };
+    const pauseAutoScroll = () => {
+      isPaused = true;
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
 
-  const handleMouseEnter = () => {
-    pauseAutoScroll();
-    if (resumeTimeout) {
-      clearTimeout(resumeTimeout);
-      resumeTimeout = null;
-    }
-  };
+    const handleMouseEnter = () => {
+      pauseAutoScroll();
+      if (resumeTimeout) {
+        clearTimeout(resumeTimeout);
+        resumeTimeout = null;
+      }
+    };
 
-  const handleMouseLeave = () => {
-    if (resumeTimeout) {
-      clearTimeout(resumeTimeout);
-      resumeTimeout = null;
-    }
-    // Esperar 2 segundos después de salir para reanudar
-    resumeTimeout = setTimeout(() => {
-      startAutoScroll();
-      resumeTimeout = null;
-    }, 2000);
-  };
+    const handleMouseLeave = () => {
+      if (resumeTimeout) {
+        clearTimeout(resumeTimeout);
+        resumeTimeout = null;
+      }
+      resumeTimeout = setTimeout(() => {
+        startAutoScroll();
+        resumeTimeout = null;
+      }, 2000);
+    };
 
-  // Iniciar auto-scroll al montar
-  startAutoScroll();
+    const timeoutId = setTimeout(startAutoScroll, 500);
 
-  // Event listeners
-  container.addEventListener('mouseenter', handleMouseEnter);
-  container.addEventListener('mouseleave', handleMouseLeave);
+    container.addEventListener('mouseenter', handleMouseEnter);
+    container.addEventListener('mouseleave', handleMouseLeave);
 
-  return () => {
-    if (interval) {
-      clearInterval(interval);
-      interval = null;
-    }
-    if (resumeTimeout) {
-      clearTimeout(resumeTimeout);
-      resumeTimeout = null;
-    }
-    container.removeEventListener('mouseenter', handleMouseEnter);
-    container.removeEventListener('mouseleave', handleMouseLeave);
-  };
-}, [news.length]);
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+      if (resumeTimeout) {
+        clearTimeout(resumeTimeout);
+        resumeTimeout = null;
+      }
+      clearTimeout(timeoutId);
+      container.removeEventListener('mouseenter', handleMouseEnter);
+      container.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [news.length]);
+
+  // Auto-scroll del carrusel de novedades (Sección 1)
+  useEffect(() => {
+    if (!newsSectionCarouselRef.current || news.length === 0) return;
+
+    const container = newsSectionCarouselRef.current;
+    let interval: NodeJS.Timeout | null = null;
+    let isPaused = false;
+    let resumeTimeout: NodeJS.Timeout | null = null;
+
+    const scrollStep = () => {
+      if (isPaused || !container) return;
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      if (container.scrollLeft >= maxScroll - 5) {
+        container.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        container.scrollBy({ left: 2, behavior: 'smooth' });
+      }
+    };
+
+    const startAutoScroll = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+      isPaused = false;
+      interval = setInterval(scrollStep, 80);
+    };
+
+    const pauseAutoScroll = () => {
+      isPaused = true;
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+
+    const handleMouseEnter = () => {
+      pauseAutoScroll();
+      if (resumeTimeout) {
+        clearTimeout(resumeTimeout);
+        resumeTimeout = null;
+      }
+    };
+
+    const handleMouseLeave = () => {
+      if (resumeTimeout) {
+        clearTimeout(resumeTimeout);
+        resumeTimeout = null;
+      }
+      resumeTimeout = setTimeout(() => {
+        startAutoScroll();
+        resumeTimeout = null;
+      }, 2000);
+    };
+
+    const timeoutId = setTimeout(startAutoScroll, 500);
+
+    container.addEventListener('mouseenter', handleMouseEnter);
+    container.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+      if (resumeTimeout) {
+        clearTimeout(resumeTimeout);
+        resumeTimeout = null;
+      }
+      clearTimeout(timeoutId);
+      container.removeEventListener('mouseenter', handleMouseEnter);
+      container.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [news.length]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!carouselRef.current) return;
@@ -324,12 +410,11 @@ useEffect(() => {
     return found?.type || null;
   };
 
-  // Renderizar reacciones (mismo estilo que ProfileCard)
+  // Renderizar reacciones
   const renderReactions = (newsId: string) => {
     const reactions = getNewsReactions(newsId);
     const userReaction = getUserNewsReaction(newsId);
     
-    // Agrupar por tipo
     const counts = reactions.reduce((acc, r) => {
       acc[r.type] = (acc[r.type] || 0) + 1;
       return acc;
@@ -359,7 +444,7 @@ useEffect(() => {
     );
   };
 
-  // Renderizar picker de reacciones (mismo estilo que ProfileCard)
+  // Renderizar picker de reacciones
   const renderReactionPicker = (newsId: string) => {
     const userReaction = getUserNewsReaction(newsId);
     
@@ -413,7 +498,8 @@ useEffect(() => {
           </p>
         </div>
 
-        {/* ===== SECCIÓN 0: CARRUSEL DE NOVEDADES ===== */}
+        {/* ===== SECCIÓN 0: CARRUSEL DE NOVEDADES (TIPO TICKER) - COMENTADO ===== */}
+        {/*
         <section className="space-y-4">
           <div className="flex items-center gap-2">
             <div className="h-[2px] w-7 bg-[#E85A1A] rounded-full" />
@@ -425,7 +511,7 @@ useEffect(() => {
           <div className="relative">
             <div
               ref={newsCarouselRef}
-              className="flex gap-4 overflow-x-auto overflow-y-hidden pb-2 pr-8 cursor-grab
+              className="flex gap-4 overflow-x-auto overflow-y-hidden pb-2 scroll-smooth
                 [&::-webkit-scrollbar]:hidden [-webkit-overflow-scrolling]:touch"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               onScroll={checkNewsScroll}
@@ -456,36 +542,40 @@ useEffect(() => {
               ))}
             </div>
 
+            <button 
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white border border-[#E4E6F0] text-[#1E2245] hover:bg-[#E85A1A] hover:text-white hover:border-[#E85A1A] transition-all flex items-center justify-center shadow-lg -ml-3"
+              onClick={() => {
+                if (newsCarouselRef.current) {
+                  newsCarouselRef.current.scrollBy({ left: -320, behavior: 'smooth' });
+                }
+              }}
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button 
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white border border-[#E4E6F0] text-[#1E2245] hover:bg-[#E85A1A] hover:text-white hover:border-[#E85A1A] transition-all flex items-center justify-center shadow-lg -mr-3"
+              onClick={() => {
+                if (newsCarouselRef.current) {
+                  newsCarouselRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+                }
+              }}
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
             {showNewsRightFade && (
               <div className="absolute right-0 top-0 bottom-2 w-12 pointer-events-none
                 bg-gradient-to-l from-[#F8F5F0] to-transparent" />
             )}
           </div>
         </section>
+        */}
 
-        {/* ===== SECCIÓN 1: VIDEO DE BIENVENIDA ===== */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-2">
-            <div className="h-[2px] w-7 bg-[#E85A1A] rounded-full" />
-            <span className="font-syne text-[10px] font-bold tracking-[2.5px] uppercase text-[#E85A1A]">
-              Video de Bienvenida
-            </span>
-          </div>
-          <div className="bg-white border border-[#E4E6F0] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all">
-            <div className="aspect-video bg-[#1E2245] rounded-xl m-2 flex items-center justify-center relative group cursor-pointer overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#E85A1A]/20 to-transparent" />
-              <div className="relative z-10 text-center">
-                <div className="w-20 h-20 rounded-full bg-[#E85A1A] flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                  <Play className="h-10 w-10 text-white fill-white ml-1" />
-                </div>
-                <p className="text-white font-semibold">Ver video de bienvenida</p>
-                <p className="text-[#9499BB] text-sm">Conoce las novedades de la plataforma</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ===== SECCIÓN 2: NOVEDADES DEL EQUIPO (DETALLADAS) ===== */}
+        {/* ===== SECCIÓN 1: NOVEDADES DEL EQUIPO (Video + Carrusel de Novedades) ===== */}
         <section className="space-y-4">
           <div className="flex items-center gap-2">
             <div className="h-[2px] w-7 bg-[#E85A1A] rounded-full" />
@@ -494,196 +584,84 @@ useEffect(() => {
             </span>
           </div>
 
-          <div className="space-y-6">
-            {/* ===== CUMPLEAÑOS ===== */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-[#FEF0EA]">
-                  <Gift className="h-4 w-4 text-[#E85A1A]" />
-                </div>
-                <h3 className="font-syne text-[10px] font-bold tracking-[2.5px] uppercase text-[#E85A1A]">Cumpleaños</h3>
-                <Badge className="bg-[#E85A1A] text-white">
-                  {displayCumpleanos.length}
-                </Badge>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
-                {displayCumpleanos.length > 0 ? (
-                  displayCumpleanos.map((newsItem) => {
-                    const messages = getBirthdayMessages(newsItem.id);
-                    const imageUrl = newsItem.imagen || defaultImages.cumpleanos;
-                    
-                    return (
-                      <div key={newsItem.id} className="bg-white border border-[#E4E6F0] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all h-full flex flex-col">
-                        <div className="relative h-32 flex-shrink-0">
-                          <img
-                            src={imageUrl}
-                            alt={newsItem.titulo}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = defaultImages.cumpleanos;
-                            }}
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                          <div className="absolute bottom-2 left-3 right-3">
-                            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm text-white border border-white/10">
-                              🎂 Cumpleaños
-                            </span>
-                            <span className="float-right text-xs text-white/80">
-                              📅 {format(new Date(newsItem.fecha), 'd MMM', { locale: es })}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="p-4 flex-1 flex flex-col">
-                          <h4 className="font-semibold text-[#1E2245] line-clamp-1">
-                            {newsItem.titulo}
-                          </h4>
-                          <p className="text-sm text-[#9499BB] line-clamp-2 flex-1">
-                            {newsItem.descripcion}
-                          </p>
-
-                          {/* Reacciones - mismo estilo que ProfileCard */}
-                          <div className="mt-2">
-                            {renderReactions(newsItem.id)}
-                          </div>
-
-                          {/* Mensajes de cumpleaños */}
-                          {messages.length > 0 && (
-                            <div className="mt-2 space-y-1 max-h-16 overflow-y-auto">
-                              {messages.slice(-2).map((msg, idx) => (
-                                <div key={idx} className="text-xs text-[#5A5F80] bg-[#F8F9FC] px-2 py-1 rounded-lg border border-[#E4E6F0]">
-                                  <span className="font-semibold text-[#1E2245]">💬 {msg.userName || 'Usuario'}:</span> {msg.message}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* Botones de acción - mismo estilo que ProfileCard */}
-                          <div className="flex items-center gap-2 mt-3 relative">
-                            <button
-                              onClick={() => setShowReactionPicker(showReactionPicker === newsItem.id ? null : newsItem.id)}
-                              className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${
-                                getUserNewsReaction(newsItem.id)
-                                  ? 'bg-[#FEF0EA] border-[#E85A1A]/30 text-[#C03510]'
-                                  : 'bg-[#F4F5FA] text-[#5A5F80] hover:bg-[#FEF0EA]'
-                              }`}
-                            >
-                              <Smile className="h-3 w-3" />
-                              <span>Reaccionar</span>
-                            </button>
-                            
-                            <button
-                              onClick={() => setShowMessageInput(showMessageInput === newsItem.id ? null : newsItem.id)}
-                              className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[#F4F5FA] text-[#5A5F80] hover:bg-[#FEF0EA] transition-colors"
-                            >
-                              <MessageCircle className="h-3 w-3" />
-                              <span>Mensaje</span>
-                            </button>
-
-                            {/* Picker de reacciones */}
-                            <AnimatePresence>
-                              {showReactionPicker === newsItem.id && (
-                                <motion.div
-                                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                  className="absolute bottom-full left-0 mb-2"
-                                >
-                                  {renderReactionPicker(newsItem.id)}
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
-
-                          {/* Input de mensaje */}
-                          <AnimatePresence>
-                            {showMessageInput === newsItem.id && (
-                              <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 10 }}
-                                className="flex gap-2 mt-2"
-                              >
-                                <input
-                                  placeholder="Escribe un mensaje de cumpleaños..."
-                                  className="flex-1 px-3 py-1.5 text-sm bg-[#F8F5F0] text-[#1E2245] rounded-lg border border-[#E4E6F0] focus:border-[#E85A1A] focus:ring-2 focus:ring-[#E85A1A]/20 outline-none"
-                                  value={messageText}
-                                  onChange={(e) => setMessageText(e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      handleBirthdayMessage(newsItem.id);
-                                    }
-                                  }}
-                                  autoFocus
-                                />
-                                <button
-                                  onClick={() => handleBirthdayMessage(newsItem.id)}
-                                  className="px-3 py-1.5 bg-[#E85A1A] text-white rounded-lg text-xs font-bold hover:bg-[#C03510] transition-colors"
-                                >
-                                  Enviar
-                                </button>
-                                <button
-                                  onClick={() => setShowMessageInput(null)}
-                                  className="px-2 py-1.5 bg-[#F4F5FA] text-[#9499BB] rounded-lg text-xs hover:bg-[#E4E6F0] transition-colors"
-                                >
-                                  <X className="h-4 w-4" />
-                                </button>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="col-span-full bg-white border border-[#E4E6F0] rounded-2xl p-6 text-center">
-                    <Gift className="h-8 w-8 mx-auto mb-2 text-[#C8CADB]" />
-                    <p className="text-sm text-[#9499BB] font-semibold">
-                      No hay cumpleaños próximos
-                    </p>
+          {/* Grid: Video a la izquierda, Carrusel a la derecha */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            {/* Columna izquierda: Video */}
+            <div className="lg:col-span-2">
+              <div className="bg-white border border-[#E4E6F0] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all h-full flex flex-col">
+                <div className="relative flex-1 bg-[#1E2245] flex items-center justify-center group cursor-pointer overflow-hidden min-h-[300px]">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#E85A1A]/20 to-transparent" />
+                  <div className="relative z-10 text-center p-6">
+                    <div className="w-24 h-24 rounded-full bg-[#E85A1A] flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-[#E85A1A]/30">
+                      <Play className="h-12 w-12 text-white fill-white ml-1" />
+                    </div>
+                    <p className="text-white font-semibold text-lg">Ver video de bienvenida</p>
+                    <p className="text-[#9499BB] text-sm mt-1">Conoce las novedades de la plataforma</p>
                   </div>
-                )}
+                </div>
               </div>
             </div>
 
-            {/* ===== OTRAS NOVEDADES ===== */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-[#FEF0EA]">
-                  <Bell className="h-4 w-4 text-[#E85A1A]" />
+            {/* Columna derecha: Carrusel de novedades */}
+            <div className="lg:col-span-3 space-y-4">
+              {/* Títulos de las secciones de novedades */}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-[#FEF0EA]">
+                    
+                  </div>
+                  
                 </div>
-                <h3 className="font-syne text-[10px] font-bold tracking-[2.5px] uppercase text-[#E85A1A]">Otras Novedades</h3>
-                <Badge className="bg-[#1E2245] text-white">
-                  {displayOthers.length}
-                </Badge>
+                <div className="flex-1 h-px bg-[#E4E6F0]" />
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-[#FEF0EA]">
+                    
+                  </div>
+                  
+                </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
-                {displayOthers.length > 0 ? (
-                  displayOthers.map((newsItem) => {
+
+              {/* Carrusel de novedades */}
+              <div className="relative">
+                <div
+                  ref={newsSectionCarouselRef}
+                  className="flex gap-4 overflow-x-auto overflow-y-hidden pb-2 scroll-smooth
+                    [&::-webkit-scrollbar]:hidden [-webkit-overflow-scrolling]:touch"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  onScroll={checkNewsSectionScroll}
+                >
+                  {news.map((item) => {
+                    const isBirthday = item.tipo === 'cumpleanos';
                     const iconMap2: Record<string, string> = {
+                      cumpleanos: '🎂',
                       nacimiento: '👶',
                       logro: '🏆',
                       noticia: '📢',
                     };
                     const labelMap2: Record<string, string> = {
+                      cumpleanos: 'Cumpleaños',
                       nacimiento: 'Nacimiento',
                       logro: 'Logro',
                       noticia: 'Noticia',
                     };
-                    
                     const imageMap: Record<string, string> = {
+                      cumpleanos: defaultImages.cumpleanos,
                       nacimiento: defaultImages.nacimiento,
                       logro: defaultImages.logro,
                       noticia: defaultImages.noticia,
                     };
-                    const imageUrl = newsItem.imagen || imageMap[newsItem.tipo] || defaultImages.noticia;
-                    
+                    const imageUrl = item.imagen || imageMap[item.tipo] || defaultImages.noticia;
+                    const messages = getBirthdayMessages(item.id);
+
                     return (
-                      <div key={newsItem.id} className="bg-white border border-[#E4E6F0] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all h-full flex flex-col">
-                        <div className="relative h-32 flex-shrink-0">
+                      <div 
+                        key={item.id} 
+                        className="flex-shrink-0 w-[280px] bg-white border border-[#E4E6F0] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all flex flex-col"
+                      >
+                        <div className="relative h-28 flex-shrink-0">
                           <img
                             src={imageUrl}
-                            alt={newsItem.titulo}
+                            alt={item.titulo}
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               (e.target as HTMLImageElement).src = defaultImages.noticia;
@@ -691,74 +669,151 @@ useEffect(() => {
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                           <div className="absolute bottom-2 left-3 right-3">
-                            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm text-white border border-white/10">
-                              {iconMap2[newsItem.tipo] || '📢'} {labelMap2[newsItem.tipo] || 'Noticia'}
+                            <span className="inline-flex items-center gap-1 text-[9px] px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm text-white border border-white/10">
+                              {iconMap2[item.tipo] || '📢'} {labelMap2[item.tipo] || 'Noticia'}
                             </span>
-                            <span className="float-right text-xs text-white/80">
-                              📅 {format(new Date(newsItem.fecha), 'd MMM', { locale: es })}
+                            <span className="float-right text-[9px] text-white/80">
+                              📅 {format(new Date(item.fecha), 'd MMM', { locale: es })}
                             </span>
                           </div>
                         </div>
                         
-                        <div className="p-4 flex-1 flex flex-col">
-                          <h4 className="font-semibold text-[#1E2245] line-clamp-1">
-                            {newsItem.titulo}
+                        <div className="p-3 flex-1 flex flex-col">
+                          <h4 className="font-semibold text-[#1E2245] text-sm line-clamp-1">
+                            {item.titulo}
                           </h4>
-                          <p className="text-sm text-[#9499BB] line-clamp-2 flex-1">
-                            {newsItem.descripcion}
+                          <p className="text-xs text-[#9499BB] line-clamp-2 flex-1 mt-0.5">
+                            {item.descripcion}
                           </p>
 
-                          {/* Reacciones - mismo estilo que ProfileCard */}
-                          <div className="mt-2">
-                            {renderReactions(newsItem.id)}
+                          <div className="mt-1.5">
+                            {renderReactions(item.id)}
                           </div>
 
-                          {/* Botones de acción - mismo estilo que ProfileCard */}
-                          <div className="flex items-center gap-2 mt-3 relative">
+                          {isBirthday && messages.length > 0 && (
+                            <div className="mt-1.5 space-y-0.5 max-h-12 overflow-y-auto">
+                              {messages.slice(-1).map((msg, idx) => (
+                                <div key={idx} className="text-[10px] text-[#5A5F80] bg-[#F8F9FC] px-2 py-0.5 rounded-lg border border-[#E4E6F0] truncate">
+                                  💬 {msg.userName}: {msg.message}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-2 mt-2 relative">
                             <button
-                              onClick={() => setShowReactionPicker(showReactionPicker === newsItem.id ? null : newsItem.id)}
-                              className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${
-                                getUserNewsReaction(newsItem.id)
+                              onClick={() => setShowReactionPicker(showReactionPicker === item.id ? null : item.id)}
+                              className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full transition-colors ${
+                                getUserNewsReaction(item.id)
                                   ? 'bg-[#FEF0EA] border-[#E85A1A]/30 text-[#C03510]'
-                                  : 'bg-[#F4F5FA] text-[#5A5F80] hover:bg-[#FEF0EA]'
+                                  : 'bg-[#F4F5FA] text-[#5A5F80] hover:bg-[#FEF0EA] border border-[#E4E6F0]'
                               }`}
                             >
                               <Smile className="h-3 w-3" />
                               <span>Reaccionar</span>
                             </button>
+                            
+                            {isBirthday && (
+                              <button
+                                onClick={() => setShowMessageInput(showMessageInput === item.id ? null : item.id)}
+                                className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-[#F4F5FA] text-[#5A5F80] hover:bg-[#FEF0EA] transition-colors border border-[#E4E6F0]"
+                              >
+                                <MessageCircle className="h-3 w-3" />
+                                <span>Mensaje</span>
+                              </button>
+                            )}
 
-                            {/* Picker de reacciones */}
                             <AnimatePresence>
-                              {showReactionPicker === newsItem.id && (
+                              {showReactionPicker === item.id && (
                                 <motion.div
                                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                   animate={{ opacity: 1, y: 0, scale: 1 }}
                                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                  className="absolute bottom-full left-0 mb-2"
+                                  className="absolute bottom-full left-0 mb-2 z-50"
                                 >
-                                  {renderReactionPicker(newsItem.id)}
+                                  {renderReactionPicker(item.id)}
                                 </motion.div>
                               )}
                             </AnimatePresence>
                           </div>
+
+                          <AnimatePresence>
+                            {isBirthday && showMessageInput === item.id && (
+                              <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 10 }}
+                                className="flex gap-1.5 mt-1.5"
+                              >
+                                <input
+                                  placeholder="Escribe un mensaje..."
+                                  className="flex-1 px-2 py-1 text-xs bg-[#F8F5F0] text-[#1E2245] rounded-lg border border-[#E4E6F0] focus:border-[#E85A1A] focus:ring-2 focus:ring-[#E85A1A]/20 outline-none"
+                                  value={messageText}
+                                  onChange={(e) => setMessageText(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      handleBirthdayMessage(item.id);
+                                    }
+                                  }}
+                                  autoFocus
+                                />
+                                <button
+                                  onClick={() => handleBirthdayMessage(item.id)}
+                                  className="px-2 py-1 bg-[#E85A1A] text-white rounded-lg text-[10px] font-bold hover:bg-[#C03510] transition-colors"
+                                >
+                                  Enviar
+                                </button>
+                                <button
+                                  onClick={() => setShowMessageInput(null)}
+                                  className="px-1.5 py-1 bg-[#F4F5FA] text-[#9499BB] rounded-lg text-[10px] hover:bg-[#E4E6F0] transition-colors"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
                       </div>
                     );
-                  })
-                ) : (
-                  <div className="col-span-full bg-white border border-[#E4E6F0] rounded-2xl p-6 text-center">
-                    <Bell className="h-8 w-8 mx-auto mb-2 text-[#C8CADB]" />
-                    <p className="text-sm text-[#9499BB] font-semibold">
-                      No hay otras novedades
-                    </p>
-                  </div>
+                  })}
+                </div>
+
+                {/* Flechas de navegación del carrusel de novedades */}
+                <button 
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white border border-[#E4E6F0] text-[#1E2245] hover:bg-[#E85A1A] hover:text-white hover:border-[#E85A1A] transition-all flex items-center justify-center shadow-lg -ml-3"
+                  onClick={() => {
+                    if (newsSectionCarouselRef.current) {
+                      newsSectionCarouselRef.current.scrollBy({ left: -320, behavior: 'smooth' });
+                    }
+                  }}
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button 
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white border border-[#E4E6F0] text-[#1E2245] hover:bg-[#E85A1A] hover:text-white hover:border-[#E85A1A] transition-all flex items-center justify-center shadow-lg -mr-3"
+                  onClick={() => {
+                    if (newsSectionCarouselRef.current) {
+                      newsSectionCarouselRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+                    }
+                  }}
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+
+                {showNewsSectionRightFade && (
+                  <div className="absolute right-0 top-0 bottom-2 w-12 pointer-events-none
+                    bg-gradient-to-l from-[#F8F5F0] to-transparent" />
                 )}
               </div>
             </div>
           </div>
         </section>
 
-        {/* ===== SECCIÓN 3: NUEVOS EN EL EQUIPO ===== */}
+        {/* ===== SECCIÓN 2: NUEVOS EN EL EQUIPO ===== */}
         <section className="space-y-4">
           <div className="flex items-center gap-2">
             <div className="h-[2px] w-7 bg-[#E85A1A] rounded-full" />
@@ -786,7 +841,7 @@ useEffect(() => {
           )}
         </section>
 
-        {/* ===== SECCIÓN 4: COMUNIDAD DE HOBBIES ===== */}
+        {/* ===== SECCIÓN 3: COMUNIDAD DE HOBBIES ===== */}
         <section className="space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-2">
@@ -856,7 +911,7 @@ useEffect(() => {
           )}
         </section>
 
-        {/* ===== SECCIÓN 5: ACTIVIDADES Y EVENTOS ===== */}
+        {/* ===== SECCIÓN 4: ACTIVIDADES Y EVENTOS ===== */}
         <section className="space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-2">
@@ -914,7 +969,7 @@ useEffect(() => {
           )}
         </section>
 
-        {/* ===== SECCIÓN 6: ASISTENTE INTELIGENTE (FUTURO) ===== */}
+        {/* ===== SECCIÓN 5: ASISTENTE INTELIGENTE (FUTURO) ===== */}
         <section className="space-y-4 opacity-50 pointer-events-none">
           <div className="flex items-center gap-2">
             <div className="h-[2px] w-7 bg-[#E85A1A] rounded-full" />
